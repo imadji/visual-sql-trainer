@@ -1,0 +1,26 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - app_network
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    ports:
+      - "5430:5432"
+    environment:
+      - POSTGRES_DB=umom_db
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+    command: postgres -c 'max_connections=10000'
+    restart: always
+    networks:
+      - app_network
+
+networks:
+  app_network:
