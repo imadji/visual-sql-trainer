@@ -1,6 +1,7 @@
 <template>
   <div class="workspace">
     <div class="switcher">
+      <!-- тут иконка которая использует метод goHome -->
       <button @click="currentView = 'tasks'" :class="{ active: currentView === 'tasks' }">
         Задания
       </button>
@@ -18,8 +19,14 @@
 import { ref } from "vue";
 import TasksView from "@/components/TasksView.vue";
 import SandboxView from "@/components/SandboxView.vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const currentView = ref("tasks");
+
+const goHome = async () => {
+  router.push("/");
+};
 </script>
 
 <style lang="scss" scoped></style>
