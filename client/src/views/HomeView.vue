@@ -33,7 +33,7 @@ const hideAuthModal = () => {
 };
 </script>
 
-<style lang="scss"  lang="scss" scoped>
+<style lang="scss" scoped>
 .container {
   height: 100vh;
   background-color: var(--background-color);
