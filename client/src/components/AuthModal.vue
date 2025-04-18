@@ -1,17 +1,19 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
+  <div class="modal-overlay">
     <div class="modal-content">
       <h2>{{ mode === "login" ? "Вход" : "Регистрация" }}</h2>
-      <form @submit.prevent="handleSubmit">
+      <form>
+        <button @click="close">закрыть</button>
+        <!-- Кнока закрытия-->
         <input v-model="email" type="email" placeholder="Email" required />
         <input v-model="password" type="password" placeholder="Пароль" required />
-        <button type="submit">Отправить</button>
+        <button @click="handleSubmit">Отправить</button>
       </form>
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "vue-router";
@@ -19,10 +21,14 @@ import { useRouter } from "vue-router";
 const props = defineProps(["mode"]);
 const emit = defineEmits(["close"]);
 
-const email = ref("");
-const password = ref("");
+const email = ref<string>("");
+const password = ref<string>("");
 const authStore = useAuthStore();
 const router = useRouter();
+
+const close = async () => {
+  emit("close");
+};
 
 const handleSubmit = async () => {
   await authStore.login({
