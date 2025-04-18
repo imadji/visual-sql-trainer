@@ -1,7 +1,7 @@
 <template>
   <div class="modal-overlay">
     <div class="modal-content">
-      <h2>{{ mode === "login" ? "Вход" : "Регистрация" }}</h2>
+      <h2>{{ props.mode === "login" ? "Вход" : "Регистрация" }}</h2>
       <form>
         <button @click="close">закрыть</button>
         <!-- Кнока закрытия-->

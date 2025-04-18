@@ -4,7 +4,8 @@ import WorkspaceView from "../views/WorkspaceView.vue";
 
 const routes = [
   { path: "/", component: HomeView },
-  { path: "/workspace", component: WorkspaceView, meta: { requiresAuth: true } },
+  //meta: { requiresAuth: true }
+  { path: "/workspace", component: WorkspaceView },
 ];
 
 const router = createRouter({
