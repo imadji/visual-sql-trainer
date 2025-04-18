@@ -4,9 +4,10 @@
       <h2>{{ props.mode === "login" ? "Вход" : "Регистрация" }}</h2>
       <form>
         <button @click="close">закрыть</button>
-        <!-- Кнока закрытия-->
-        <input v-model="email" type="email" placeholder="Email" required />
-        <input v-model="password" type="password" placeholder="Пароль" required />
+        <!-- иконка креста закрытия-->
+        <!-- не забыть вернуть type pass email -->
+        <input v-model="email" placeholder="Email" required />
+        <input v-model="password" placeholder="Пароль" required />
         <button @click="handleSubmit">Отправить</button>
       </form>
     </div>

@@ -2,6 +2,7 @@
   <div class="workspace">
     <div class="switcher">
       <!-- тут иконка которая использует метод goHome -->
+      <!-- если svg то вынести svg файл отдельно в assets -->
       <button @click="currentView = 'tasks'" :class="{ active: currentView === 'tasks' }">
         Задания
       </button>
