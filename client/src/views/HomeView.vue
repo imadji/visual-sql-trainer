@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <header>
       <button @click="showAuthModal('login')">Вход</button>
       <button @click="showAuthModal('register')">Регистрация</button>
@@ -28,3 +28,10 @@ const hideAuthModal = () => {
   isModalVisible.value = false;
 };
 </script>
+
+<style scoped>
+.container{
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+</style>
