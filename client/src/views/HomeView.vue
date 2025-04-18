@@ -2,8 +2,7 @@
   <div class="container">
     <header class="header-container">
       <span>
-        
-        <img src="../assets/Logo-mini.png" alt="">
+        <img src="../assets/Logo-mini.png" alt="" />
       </span>
       <button class="sign-up-btn" @click="showAuthModal('login')">Вход</button>
       <!-- <button @click="showAuthModal('register')">Регистрация</button> -->
@@ -40,11 +39,11 @@ const hideAuthModal = () => {
   color: var(--text-color);
 }
 
-.header-container{
-width: 100%;
-display: flex;
-justify-content: space-between;
-  button{
+.header-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  button {
     background-color: var(--shadow-background);
     padding-top: 5px;
     padding-bottom: 5px;
