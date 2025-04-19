@@ -32,7 +32,7 @@
     transform: translateX(-10px);
   }
 
-  .sign-container{
+  .sign-container {
     display: flex;
     flex-direction: row;
     gap: 10px;
@@ -58,24 +58,23 @@
         left: -60%;
         width: 40%;
         height: 100%;
-        background: linear-gradient(
-          120deg,
-          rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.4) 50%,
-        rgba(255, 255, 255, 0) 100%
-        );
+        background: linear-gradient(120deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            rgba(255, 255, 255, 0) 100%);
         transform: skewX(-20deg);
         animation: shine 3s ease-in-out infinite;
         z-index: 1;
         pointer-events: none;
       }
     }
-    }
-    
-    @keyframes shine {
-      0% {
+  }
+
+  @keyframes shine {
+    0% {
       left: -60%;
     }
+
     100% {
       left: 120%;
     }
@@ -86,7 +85,7 @@
 
 @media (max-width: 456px) {
   .header-container {
-    .sign-container{
+    .sign-container {
       display: flex;
       flex-direction: column;
       align-items: center;

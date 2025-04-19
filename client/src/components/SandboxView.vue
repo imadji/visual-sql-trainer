@@ -2,16 +2,11 @@
   <div class="sandbox">
     <div class="main-workspace">
       <div class="tables-container" ref="tablesContainer">
-        <div
-          v-for="(table, index) in resultTables"
-          :key="index"
-          class="result-table"
-          :style="{
-            left: table.position.x + 'px',
-            top: table.position.y + 'px',
-            width: table.width + 'px',
-          }"
-        >
+        <div v-for="(table, index) in resultTables" :key="index" class="result-table" :style="{
+          left: table.position.x + 'px',
+          top: table.position.y + 'px',
+          width: table.width + 'px',
+        }">
           <div class="table-header" @mousedown="startDrag($event, index)">
             <h3>{{ table.name }}</h3>
             <div class="table-controls">
@@ -35,23 +30,22 @@
         </div>
       </div>
       <div class="right-container">
+        <div class="console-panel">
+          <span>Инпут:</span>
+          <div class="conole-btns">
+            <button @click="sendRequest" class="submit-btn">
+              <img src="../assets/start.png" alt="">
+            </button>
+          </div>
+        </div>
         <div class="console-output" ref="consoleOutput">
-          <div
-            v-for="(log, index) in consoleLogs"
-            :key="index"
-            class="log-message"
-            :class="log.type"
-          >
+          <div v-for="(log, index) in consoleLogs" :key="index" class="log-message" :class="log.type">
             {{ log.message }}
           </div>
         </div>
         <div class="editor-container">
-          <textarea
-            v-model="textRequest"
-            placeholder="Введите SQL-запрос..."
-            @keydown.enter.exact.prevent="sendRequest"
-          ></textarea>
-          <button @click="sendRequest" class="submit-btn">Выполнить</button>
+          <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."
+            @keydown.enter.exact.prevent="sendRequest"></textarea>
         </div>
       </div>
     </div>
@@ -188,10 +182,10 @@ onMounted(() => {
 .sandbox {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 40px);
+  height: 80vh;
   padding: 20px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f7fa;
+  // background-color: #f5f7fa;
 }
 
 .main-workspace {
@@ -208,7 +202,7 @@ onMounted(() => {
   min-height: 100%;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  background-color: #ffffff;
+  background-color: rgba(233, 241, 255, 1);
   padding: 15px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
@@ -219,10 +213,19 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  gap: 10px;
+
+  .console-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
+
 .console-output {
   flex: 1;
-  background-color: #1e1e1e;
+  // background-color: #1e1e1e;
+  background-color: rgba(233, 241, 255, 1);
   color: #e0e0e0;
   border-radius: 6px;
   padding: 12px;
@@ -278,33 +281,13 @@ onMounted(() => {
     font-family: "Consolas", monospace;
     font-size: 14px;
     resize: none;
-    background-color: #ffffff;
+    background-color: rgba(233, 241, 255, 1);
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 
     &:focus {
       outline: none;
       border-color: #4a6fa5;
       box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(74, 111, 165, 0.2);
-    }
-  }
-
-  .submit-btn {
-    padding: 10px 20px;
-    background-color: #4a6fa5;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: #3a5a8f;
-    }
-
-    &:active {
-      background-color: #2a4a7f;
     }
   }
 }

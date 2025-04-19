@@ -13,13 +13,7 @@
 
         <div class="form-group">
           <label for="password">Пароль</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            placeholder="Введите пароль"
-            required
-          />
+          <input id="password" v-model="password" type="password" placeholder="Введите пароль" required />
         </div>
 
         <div v-if="errorMessage" class="error-message">
@@ -168,9 +162,11 @@ const handleSubmit = async () => {
         ::placeholder {
           color: white;
         }
+
         ::-webkit-input-placeholder {
           color: white;
         }
+
         input {
           background-color: grey;
           padding: 5px 20px;
@@ -178,6 +174,7 @@ const handleSubmit = async () => {
           color: white;
         }
       }
+
       button {
         display: flex;
         align-items: center;
@@ -199,12 +196,10 @@ const handleSubmit = async () => {
           left: -60%;
           width: 40%;
           height: 100%;
-          background: linear-gradient(
-            120deg,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.4) 50%,
-            rgba(255, 255, 255, 0) 100%
-          );
+          background: linear-gradient(120deg,
+              rgba(255, 255, 255, 0) 0%,
+              rgba(255, 255, 255, 0.4) 50%,
+              rgba(255, 255, 255, 0) 100%);
           transform: skewX(-20deg);
           animation: shine 3s ease-in-out infinite;
           z-index: 1;
