@@ -21,6 +21,7 @@
 .train-container{
 width: 100%;
 margin-top: 100px;
+margin-bottom: 100px;
 display: flex;
 flex-direction: row;
 align-items: center;
@@ -37,9 +38,9 @@ gap: 15px;
     font-size: 20px;
     }
 }
-.train-photo{
-    min-width: 384px;
-    height: 142px;
+img{
+    width: 384px;
+    // height: 142px;
     background-color: #fff;
     border-radius: 10px;
 }
@@ -48,6 +49,7 @@ gap: 15px;
 /* Small (sm) – устройства от 576px */
 @media (max-width: 576px) {
     .train-container{
+    margin-bottom: 100px !important;
     gap: 50px;
     flex-direction: column;
     .train-text{
@@ -64,6 +66,7 @@ gap: 15px;
 /* Medium (md) – устройства от 768px */
 @media (max-width: 768px) {
 .train-container{
+    margin-bottom: 50px;
     gap: 50px;
     flex-direction: column;
     .train-text{
@@ -80,6 +83,7 @@ gap: 15px;
 /* Large (lg) – устройства от 992px */
 @media (max-width: 992px) {
 .train-container{
+    margin-bottom: 50px;
     gap: 50px;
     flex-direction: column;
     .train-text{
