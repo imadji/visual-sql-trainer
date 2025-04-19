@@ -6,7 +6,7 @@
             <div class="main-label-text-semititle">SQL Coding - Просто. Чётко. Работает.</div>
             <div class="main-label-text">Учись писать SQL-запросы быстро и просто.</div>
             <div class="main-label-text">Пробуй, ошибайся, улучшай! </div>
-            <button >Начать тренировку</button>
+            <button>Начать тренировку</button>
         </span>
     </main>
 </template>

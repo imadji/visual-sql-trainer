@@ -1,20 +1,12 @@
 <template>
   <div class="container">
     <HomeHeader @open-auth="showAuthModal"/>
+    <AuthModal v-if="isModalVisible" :mode="modalMode" @close="hideAuthModal" />
     <HomeMain/>
     <hr/>
-    <div class="train-container">
-      <div class="train-text">
-        <label>Тренируй свои навыки</label>
-        <span>SQL — это навык, который лучше всего развивается в практике.
-          Внутри тебя ждут интерактивные задания, живые примеры и понятные объяснения.
-          От простых SELECT до сложных JOIN и подзапросов — ты сам решаешь темп и направление.
-          Попробуй — и поймешь, что учиться можно интересно.
-        </span>
-      </div>
-      <div class="train-photo"></div>
-    </div>
-    <AuthModal v-if="isModalVisible" :mode="modalMode" @close="hideAuthModal" />
+    <HomeTrain/>
+    <HomePractice/>
+    <HomeFooter/>
   </div>
 </template>
 
@@ -23,6 +15,9 @@ import { ref } from "vue";
 import AuthModal from "@/components/AuthModal.vue";
 import HomeHeader from "./HomeHeader.vue";
 import HomeMain from "./HomeMain.vue";
+import HomeTrain from "./HomeTrain.vue";
+import HomeFooter from "./HomeFooter.vue";
+import HomePractice from "./HomePractice.vue";
 
 const isModalVisible = ref(false);
 const modalMode = ref("login");
@@ -55,30 +50,4 @@ hr {
   background: linear-gradient(90deg,rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
 }
 
-.train-container{
-  width: 100%;
-  margin-top: 100px;
-  // height: 250px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 15px;
-
-  .train-text{
-    display: flex;
-    flex-direction: column;
-    label{
-      font-size: 42px;
-    }
-    span{
-      font-size: 20px;
-    }
-  }
-  .train-photo{
-    min-width: 384px;
-    height: 142px;
-    background-color: #fff;
-    border-radius: 10px;
-  }
-}
 </style>
