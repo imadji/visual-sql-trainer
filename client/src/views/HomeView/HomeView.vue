@@ -41,7 +41,7 @@ const hideAuthModal = () => {
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  // height: 100vh;
   background-color: var(--background-color);
   color: var(--text-color);
   padding-left: 2%;
