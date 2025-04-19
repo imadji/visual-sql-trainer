@@ -32,10 +32,9 @@
       <div class="right-container">
         <div class="console-panel">
           <span>Инпут:</span>
-          <div class="conole-btns">
-            <button @click="sendRequest" class="submit-btn">
-              <img src="../assets/start.png" alt="">
-            </button>
+          <div class="console-btns">
+              <img @click="sendRequest" src="../assets/start.png" alt="">
+              <img @click="sendRequest" src="../assets/info-icon.png" alt="">
           </div>
         </div>
         <div class="console-output" ref="consoleOutput">
@@ -201,9 +200,9 @@ onMounted(() => {
   position: relative;
   min-height: 100%;
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 10px;
   background-color: rgba(233, 241, 255, 1);
-  padding: 15px;
+  padding: 7px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
@@ -214,11 +213,26 @@ onMounted(() => {
   flex-direction: column;
   min-height: 0;
   gap: 10px;
+  padding: 7px;
+  border: 1px solid white;
+  border-radius: 10px;
 
   .console-panel {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    span {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .console-btns {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
   }
 }
 
