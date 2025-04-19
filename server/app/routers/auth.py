@@ -61,3 +61,27 @@ def read_item(pd_user: schemas.UserPD, db: Session = Depends(get_db)):
         db.commit()
         return {"status": True}
     return {"status": False}
+
+
+@router.get("/get_tables")
+def read_item(login: str, db: Session = Depends(get_db)):
+    db_user = (
+        db.query(models.UserDB).filter(models.UserDB.login == login).first()
+    )
+    if not db_user:
+        return {"tables": []}
+    inspector = inspect(db.bind)
+    tables = inspector.get_table_names(schema=db_user.login)
+    tables_struct = []
+    for table in tables:
+        tables_struct.append(
+            exec_query(
+                schemas.SQLQuery(
+                    query=f"select * from {table};",
+                    user=login,
+                ),
+                db=db,
+                is_result=False,
+            )
+        )
+    return {"tables": tables_struct}

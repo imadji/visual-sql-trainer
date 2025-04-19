@@ -67,7 +67,7 @@
 
       <div class="right-container">
         <div class="console-panel">
-          <span>Инпут:</span>
+          <span>Консоль :</span>
           <div class="console-btns">
             <img @click="sendRequest" src="../assets/info-icon.png" alt="Информация" />
           </div>
@@ -86,7 +86,7 @@
               @click="openDebugger(log.message)"
               title="Открыть в отладчике"
             >
-              123
+              <img src="../assets/info-helper.png" alt="" />
             </button>
           </div>
         </div>
@@ -108,7 +108,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, nextTick, computed } from "vue";
-import { useAuthStore, useSqlRequest } from "@/stores/authStore";
+import { useAuthStore, useSqlRequest } from "@/stores/store";
 import DebuggerView from "../components/DebuggerView.vue";
 
 interface TablePosition {
@@ -311,8 +311,7 @@ onMounted((): void => {
   height: 80vh;
   padding: 20px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #1e1e1e;
-  color: #e0e0e0;
+  // color: #e0e0e0;
 }
 
 .main-workspace {
@@ -327,7 +326,7 @@ onMounted((): void => {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background-color: #2d2d2d;
+  // background-color: #2d2d2d;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   overflow: hidden;
@@ -335,9 +334,9 @@ onMounted((): void => {
 
 .tabs-container {
   display: flex;
-  background-color: #252526;
+  background-color: rgba(233, 241, 255, 1);
   padding: 8px 8px 0 8px;
-  border-bottom: 1px solid #3c3c3c;
+  border-bottom: 1px solid rgba(103, 107, 115, 1);
 
   .tab-btn {
     padding: 8px 16px;
@@ -349,17 +348,14 @@ onMounted((): void => {
     border-radius: 4px 4px 0 0;
     margin-right: 4px;
     font-size: 14px;
-    color: #d4d4d4;
+    color: #000;
+    font-weight: 500;
 
     &.active {
       border-bottom-color: #4a6fa5;
       font-weight: 600;
-      color: #ffffff;
-      background-color: #1e1e1e;
-    }
-
-    &:hover {
-      background-color: #2a2d2e;
+      color: #000;
+      background-color: rgba(233, 241, 255, 1);
     }
   }
 }
@@ -378,7 +374,8 @@ onMounted((): void => {
   bottom: 0;
   padding: 15px;
   overflow: hidden;
-  background-color: #1e1e1e;
+  // background-color: #1e1e1e;
+  background-color: rgba(233, 241, 255, 1);
 }
 
 .debugger-container {
@@ -389,7 +386,8 @@ onMounted((): void => {
   bottom: 0;
   padding: 15px;
   overflow: auto;
-  background-color: #1e1e1e;
+  // background-color: #1e1e1e;
+  background-color: rgba(233, 241, 255, 1);
   color: #e0e0e0;
 }
 
@@ -399,10 +397,10 @@ onMounted((): void => {
   flex-direction: column;
   min-height: 0;
   gap: 10px;
-  background-color: #2d2d2d;
   border-radius: 8px;
   padding: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(103, 107, 115, 1);
+  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .console-panel {
@@ -411,7 +409,7 @@ onMounted((): void => {
   align-items: center;
 
   span {
-    font-size: 16px;
+    font-size: 19px;
     font-weight: 600;
     color: #e0e0e0;
   }
@@ -421,8 +419,8 @@ onMounted((): void => {
     gap: 10px;
 
     img {
-      width: 20px;
-      height: 20px;
+      // width: 20px;
+      // height: 20px;
       cursor: pointer;
       opacity: 0.7;
       transition: opacity 0.2s;
@@ -437,6 +435,7 @@ onMounted((): void => {
 .console-output {
   flex: 1;
   background-color: #1e1e1e;
+  background-color: rgba(233, 241, 255, 1);
   border-radius: 6px;
   padding: 12px;
   font-family: "Consolas", monospace;
@@ -510,8 +509,8 @@ onMounted((): void => {
     font-family: "Consolas", monospace;
     font-size: 14px;
     resize: none;
-    background-color: #1e1e1e;
-    color: #e0e0e0;
+    background-color: rgba(233, 241, 255, 1);
+    color: #000;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 
     &:focus {
