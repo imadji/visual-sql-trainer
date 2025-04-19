@@ -37,7 +37,10 @@
         </div>
       </div>
       <div class="right-container">
-        <h3>Вывод данных SQL запросов</h3>
+        <!-- <h3>Вывод данных SQL запросов</h3> -->
+         <div >
+          <span>Инпут:</span>
+         </div>
         <div class="right-content">
           <div v-if="testDataTable?.name" class="result-table">
             <div class="table-header">
@@ -73,22 +76,24 @@
       </div>
     </div>
 
-    <div class="status-section">
+    <!-- <div class="status-section">
       <h3>Статус:</h3>
       <ul class="status-list">
         <li>{{ status }}</li>
       </ul>
-    </div>
+    </div> -->
 
-    <div class="editor">
+    <!-- <div class="editor">
       <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."></textarea>
       <button @click="sendRequest" class="submit-btn">Отправить запрос</button>
-    </div>
+    </div> -->
+    <HomeFooter/>
   </div>
 </template>
 
 <script setup>
 import { useSqlRequest } from "@/stores/authStore";
+import HomeFooter from "@/views/HomeView/HomeFooter.vue";
 import { ref, reactive } from "vue";
 
 const resultTables = reactive([]);
@@ -195,9 +200,8 @@ const removeTable = (index) => {
 .sandbox {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+  min-height: 90vh;
+  font-family: "Ubuntu", sans-serif;
   max-width: 1800px;
   margin: 0 auto;
   position: relative;
@@ -216,18 +220,20 @@ const removeTable = (index) => {
   min-height: 400px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  background-color: #f9f9f9;
   padding: 15px;
   color: #000;
+  background-color: rgba(233, 241, 255, 1);
 }
 
 .right-container {
-  background: white;
   border: 1px solid #ddd;
   width: 450px;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  // flex: 1;
+  // height: 100%;
+
   .result-table {
     border: 1px solid #e0e0e0;
     border-radius: 4px;
@@ -243,9 +249,11 @@ const removeTable = (index) => {
     }
     .table-content {
       max-height: 300px;
+      background-color: rgba(233, 241, 255, 1);
       overflow-y: auto;
       table {
         width: 100%;
+        min-height: 300px;
         border-collapse: collapse;
         th,
         td {
@@ -260,7 +268,8 @@ const removeTable = (index) => {
         .empty-message {
           text-align: center;
           color: #888;
-          font-style: italic;
+          // font-style: italic;
+          font-family: "Ubuntu", sans-serif;
         }
       }
     }
@@ -271,15 +280,19 @@ const removeTable = (index) => {
   }
 
   .empty-state {
-    color: #888;
+    height: 100%;
+    color: #000;
     text-align: center;
     padding: 20px;
+    background-color: rgba(233, 241, 255, 1);
+    font-family: "Ubuntu", sans-serif;
+    font-weight: 500;
   }
 }
 
 .result-table {
   position: absolute;
-  color: #000; // удалить
+  // color: #000; // удалить
   background: white;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -391,7 +404,7 @@ const removeTable = (index) => {
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    font-family: monospace;
+    // font-family: monospace;
     font-size: 14px;
     resize: vertical;
     margin-bottom: 15px;
