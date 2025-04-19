@@ -6,12 +6,19 @@
             <div class="main-label-text-semititle">SQL Coding - Просто. Чётко. Работает.</div>
             <div class="main-label-text">Учись писать SQL-запросы быстро и просто.</div>
             <div class="main-label-text">Пробуй, ошибайся, улучшай! </div>
-            <button>Начать тренировку</button>
+            <button @click="startTraining">Начать тренировку</button>
         </span>
     </main>
 </template>
 
 <script setup>
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const startTraining = () => {
+  router.push("/workspace");
+};
 </script>
 
 <style scoped lang="scss">

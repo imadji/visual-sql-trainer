@@ -8,7 +8,8 @@
             Попробуй — и поймешь, что учиться можно интересно.
         </span>
         </div>
-        <div class="train-photo"></div>
+        <!-- <div class="train-photo"></div> -->
+         <img src="../../assets/train-image.png" alt="">
     </div>
 </template>
 
