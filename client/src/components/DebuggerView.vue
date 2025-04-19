@@ -39,7 +39,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, watch } from "vue";
-import { useSqlRequest } from "@/stores/authStore";
+import { useSqlRequest } from "@/stores/store";
 
 const sqlStore = useSqlRequest();
 const currentStep = ref(0);
@@ -78,7 +78,6 @@ const moveCursor = (direction: number): void => {
 
 const parseExecutionSteps = (response: any): any[] => {
   const steps = [];
-  let sqlParts = props.debugMessage.split("\n").filter((line) => line.trim());
   for (const [key, result] of Object.entries(response)) {
     steps.push({
       sql: key,
@@ -104,7 +103,6 @@ const executeStepSqlRequest = async (): Promise<void> => {
     const response = await sqlStore.executeSqlStep(credentials);
     executionSteps.value = parseExecutionSteps(response);
     currentStep.value = 0;
-    console.log("Execution steps:", executionSteps.value);
   } catch (error) {
     console.error("Step execution error:", error);
   }

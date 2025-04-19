@@ -108,7 +108,7 @@
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, nextTick, computed } from "vue";
-import { useAuthStore, useSqlRequest } from "@/stores/authStore";
+import { useAuthStore, useSqlRequest } from "@/stores/store";
 import DebuggerView from "../components/DebuggerView.vue";
 
 interface TablePosition {
