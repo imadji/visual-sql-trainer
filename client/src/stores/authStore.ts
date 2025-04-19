@@ -10,9 +10,19 @@ interface UserDataSql {
   user: string;
 }
 
+interface TableData {
+  name: string;
+  headers: string[];
+  data: any[][];
+  position: { x: number; y: number };
+  width: number;
+  isDragging: boolean;
+}
+
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     userLogin: localStorage.getItem("authToken") || null,
+    tables: [] as TableData[],
   }),
 
   actions: {
@@ -45,6 +55,11 @@ export const useAuthStore = defineStore("auth", {
       }
 
       return response.data;
+    },
+
+    setTables(tables: TableData[]) {
+      this.tables = tables;
+      console.log(this.tables);
     },
 
     logout() {
