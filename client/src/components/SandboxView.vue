@@ -86,7 +86,7 @@
               @click="openDebugger(log.message)"
               title="Открыть в отладчике"
             >
-              123
+              <img src="../assets/info-helper.png" alt="">
             </button>
           </div>
         </div>
@@ -348,7 +348,8 @@ onMounted((): void => {
     border-radius: 4px 4px 0 0;
     margin-right: 4px;
     font-size: 14px;
-    color: #d4d4d4;
+    color: #000;
+    font-weight: 500;
 
     &.active {
       border-bottom-color: #4a6fa5;
@@ -358,7 +359,7 @@ onMounted((): void => {
     }
 
     &:hover {
-      background-color: #2a2d2e;
+      // background-color: #2a2d2e;
     }
   }
 }
@@ -389,8 +390,8 @@ onMounted((): void => {
   bottom: 0;
   padding: 15px;
   overflow: auto;
-  background-color: #1e1e1e;
-  // background-color: rgba(233, 241, 255, 1);
+  // background-color: #1e1e1e;
+  background-color: rgba(233, 241, 255, 1);
   color: #e0e0e0;
 }
 
@@ -513,7 +514,7 @@ onMounted((): void => {
     font-size: 14px;
     resize: none;
     background-color: rgba(233, 241, 255, 1);
-    color: #e0e0e0;
+    color: #000;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 
     &:focus {

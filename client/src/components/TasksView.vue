@@ -181,10 +181,11 @@ function runQuery() {
 }
 
 .tasks-panel {
+  height: 100%;
   min-width: 400px;
-  
+
   .tasks-items {
-    // height: 100%;
+    height: 100%;
     overflow: scroll;
     padding: 15px 0;
     width: 100%;

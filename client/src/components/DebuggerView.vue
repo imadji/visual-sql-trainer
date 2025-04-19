@@ -137,6 +137,12 @@ watch(
 .debugger-controls {
   display: flex;
   gap: 10px;
+  align-items: center;
+
+  span{
+    color: #000;
+    font-weight: 500;
+  }
 
   .nav-btn {
     background: #4a6fa5;
@@ -160,7 +166,8 @@ watch(
 }
 
 .sql-preview {
-  background-color: #252526;
+  // background-color: #252526;
+  background-color: rgba(0, 119, 216, 0.36);
   border-radius: 4px;
   padding: 10px;
   font-family: "Consolas", monospace;
@@ -174,7 +181,8 @@ watch(
   line-height: 1.5;
 
   &.active-line {
-    background-color: rgba(74, 111, 165, 0.2);
+    background-color: #000;
+    // background-color: rgba(74, 111, 165, 0.2);
   }
 }
 
