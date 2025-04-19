@@ -47,7 +47,7 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.wrapper{
+.wrapper {
   width: 100%;
   height: 100%;
   position: relative;
@@ -68,12 +68,10 @@ onUnmounted(() => {
 hr {
   height: 2px;
   border: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 1) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 1) 50%,
+      rgba(255, 255, 255, 0) 100%);
 }
 
 .train-container {
@@ -83,9 +81,11 @@ hr {
   .train-text {
     display: flex;
     flex-direction: column;
+
     label {
       font-size: 42px;
     }
+
     span {
       font-size: 20px;
     }

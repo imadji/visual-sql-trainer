@@ -5,13 +5,15 @@
 </template>
 
 <script setup>
-  // Никаких реактивностей не нужно — кнопка просто эмитит событие
+// Никаких реактивностей не нужно — кнопка просто эмитит событие
 </script>
 
 <style scoped lang="scss">
-footer{
-    margin-top: 50px;
-    margin-bottom: 20px;
+footer {
+    height: 10vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
 }
 </style>

@@ -23,32 +23,33 @@ const startTraining = () => {
 </script>
 
 <style scoped lang="scss">
-.main-container{
-width: 100%;
-height: 90vh;
-display: flex;
-flex-direction: row;
-align-items: center;
-justify-content: center;
-gap: 10px;
+.main-container {
+    width: 100%;
+    height: 90vh;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 
-    .back-text{
+    .back-text {
         position: absolute;
         width: 60%;
         z-index: 0;
     }
 
-    img{
+    img {
         z-index: 1;
         backdrop-filter: blur(2px);
     }
-    span{
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    z-index: 2;
 
-        .main-label-text-title{
+    span {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        z-index: 2;
+
+        .main-label-text-title {
             font-size: 63px;
             font-weight: 900;
             padding: 0 20px;
@@ -58,13 +59,16 @@ gap: 10px;
             transform: translateX(-60px);
             backdrop-filter: blur(2px);
         }
-        .main-label-text-semititle{
+
+        .main-label-text-semititle {
             font-size: 37px;
             transform: translateX(-30px);
         }
-        .main-label-text{
+
+        .main-label-text {
             font-size: 20px;
         }
+
         button {
             margin-top: 30px;
             position: relative;
@@ -86,74 +90,82 @@ gap: 10px;
                 left: -60%;
                 width: 40%;
                 height: 100%;
-                background: linear-gradient(
-                120deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.4) 50%,
-                rgba(255, 255, 255, 0) 100%
-                );
+                background: linear-gradient(120deg,
+                        rgba(255, 255, 255, 0) 0%,
+                        rgba(255, 255, 255, 0.4) 50%,
+                        rgba(255, 255, 255, 0) 100%);
                 transform: skewX(-20deg);
                 animation: shine 3s ease-in-out infinite;
                 z-index: 1;
                 pointer-events: none; // чтобы не мешать кликам
             }
-            }
+        }
 
-            @keyframes shine {
+        @keyframes shine {
             0% {
                 left: -60%;
             }
+
             100% {
                 left: 120%;
             }
-            }
+        }
 
     }
 }
 
 /* Small (sm) – устройства от 576px */
 @media (max-width: 576px) {
-    .main-container{
-        img{
+    .main-container {
+        img {
             opacity: 0.5;
             filter: blur(5px);
         }
-        span{
+
+        span {
             transform: translateX(20px) !important;
-            .main-label-text-title{
+
+            .main-label-text-title {
                 font-size: 30px !important;
                 transform: translateX(0) !important;
             }
-            .main-label-text-semititle{
+
+            .main-label-text-semititle {
                 font-size: 18px !important;
                 transform: translateX(0) !important;
             }
-            .main-label-text{
+
+            .main-label-text {
                 font-size: 16px !important;
                 transform: translateX(0) !important;
             }
         }
-    }}
+    }
+}
 
 /* Medium (md) – устройства от 768px */
 @media (max-width: 768px) {
-    .main-container{
-        img{
+    .main-container {
+        img {
             position: absolute;
             opacity: 0.5;
             filter: blur(5px);
         }
-        span{
+
+        span {
             transform: translateX(none);
-            .main-label-text-title{
+
+            .main-label-text-title {
                 font-size: 37px;
                 transform: translateX(0) !important;
             }
-            .main-label-text-semititle{
+
+            .main-label-text-semititle {
                 font-size: 18px;
                 transform: translateX(0) !important;
             }
-            .main-label-text{
+
+            .main-label-text {
                 font-size: 16px;
                 transform: translateX(0) !important;
             }
@@ -163,15 +175,17 @@ gap: 10px;
 
 /* Large (lg) – устройства от 992px */
 @media (max-width: 992px) {
-    .main-container{
-        span{
-            .main-label-text-title{
+    .main-container {
+        span {
+            .main-label-text-title {
                 // font-size: 53px;
             }
-            .main-label-text-semititle{
+
+            .main-label-text-semititle {
                 font-size: 27px;
             }
-            .main-label-text{
+
+            .main-label-text {
                 font-size: 20px;
             }
         }
@@ -180,11 +194,11 @@ gap: 10px;
 
 /* Extra large (xl) – устройства от 1200px */
 @media (max-width: 1200px) {
-  /* Стили для экранов шириной ≥ 1200px */
+    /* Стили для экранов шириной ≥ 1200px */
 }
 
 /* Extra extra large (xxl) – устройства от 1400px */
 @media (max-width: 1400px) {
-  /* cтили для экранов шириной ≥ 1400px */
+    /* cтили для экранов шириной ≥ 1400px */
 }
 </style>
