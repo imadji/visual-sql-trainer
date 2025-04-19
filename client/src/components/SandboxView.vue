@@ -96,7 +96,7 @@ const sendRequest = async () => {
       user: userString,
     };
     const response = await sqlStore.executeSqlReq(credentials);
-    if (response) {
+    if (response.name) {
       const newTable = {
         name: response.name || "Результат запроса",
         headers: response.headers || [],
@@ -108,7 +108,15 @@ const sendRequest = async () => {
         width: 450,
         isDragging: false,
       };
-      resultTables.push(newTable);
+      let is_new = true;
+      for (let i = 0; i < resultTables.length; i++) {
+        if (resultTables[i].name == response.name) {
+          resultTables[i] = newTable;
+          is_new = false;
+          break;
+        }
+      }
+      if (is_new) resultTables.push(newTable);
       logToConsole("Запрос выполнен успешно", "success");
     }
   } catch (error) {
