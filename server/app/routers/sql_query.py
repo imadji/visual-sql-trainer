@@ -12,7 +12,11 @@ router = APIRouter(prefix="/sql_query")
 
 
 @router.post("/")
-def exec_query(query_struct: schemas.SQLQuery, db: Session = Depends(get_db)):
+def exec_query(
+    query_struct: schemas.SQLQuery,
+    db: Session = Depends(get_db),
+    is_result: bool = True,
+):
     db.execute(text("SET search_path TO public"))
     db_user = (
         db.query(models.UserDB)
@@ -34,6 +38,7 @@ def exec_query(query_struct: schemas.SQLQuery, db: Session = Depends(get_db)):
             print(explain_data)
             rows = result.mappings().all()
             return {
+                "is_result": is_result,
                 "name": explain_data[0]["Plan"].get(
                     "Relation Name", "Query Result"
                 ),
@@ -49,6 +54,7 @@ def exec_query(query_struct: schemas.SQLQuery, db: Session = Depends(get_db)):
                     user=query_struct.user,
                 ),
                 db,
+                False,
             )
     except ProgrammingError as err:
         return str(err.orig)
