@@ -35,7 +35,7 @@
         </div>
       </div>
       <div class="right-container">
-        <div class="console-output">
+        <div class="console-output" ref="consoleOutput">
           <div
             v-for="(log, index) in consoleLogs"
             :key="index"
@@ -60,11 +60,12 @@
 
 <script setup>
 import { useAuthStore, useSqlRequest } from "@/stores/authStore";
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, nextTick } from "vue";
 
 const resultTables = reactive([]);
 const tablesContainer = ref(null);
 const activeDragIndex = ref(null);
+const consoleOutput = ref(null);
 const textRequest = ref("");
 const dragOffset = reactive({ x: 0, y: 0 });
 const consoleLogs = reactive([]);
@@ -73,6 +74,14 @@ const tableStore = useAuthStore();
 
 const logToConsole = (message, type = "info") => {
   consoleLogs.push({ message, type });
+  nextTick(() => {
+    if (consoleOutput.value) {
+      consoleOutput.value.scrollTo({
+        top: consoleOutput.value.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  });
 };
 
 const sendRequest = async () => {
@@ -221,6 +230,8 @@ onMounted(() => {
   font-size: 13px;
   overflow-y: auto;
   min-height: 0;
+  scroll-behavior: smooth;
+
   .log-message {
     margin-bottom: 8px;
     line-height: 1.4;
