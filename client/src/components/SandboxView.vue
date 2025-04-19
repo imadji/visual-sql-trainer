@@ -69,7 +69,11 @@
         <div class="console-panel">
           <span>Консоль :</span>
           <div class="console-btns">
-            <img @click="sendRequest" src="../assets/info-icon.png" alt="Информация" />
+            <img
+              @click="openAImodal"
+              src="../assets/info-icon.png"
+              :class="{ disabled: isAIButtonDisabled }"
+            />
           </div>
         </div>
         <div class="console-output" ref="consoleOutput">
@@ -91,8 +95,6 @@
           </div>
         </div>
         <div class="editor-container">
-          <!-- <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."
-            @keydown.enter.exact.prevent="sendRequest"></textarea> -->
           <textarea
             v-model="textRequest"
             placeholder="Введите SQL-запрос..."
@@ -103,12 +105,45 @@
         </div>
       </div>
     </div>
+
+    <!-- AI Modal -->
+    <div v-if="showAIModal" class="ai-modal-overlay" @click.self="closeAIModal">
+      <div class="ai-modal">
+        <div class="ai-modal-header">
+          <h3>Генератор задач AI</h3>
+          <button class="close-btn" @click="closeAIModal">×</button>
+        </div>
+        <div class="ai-modal-content">
+          <p>AI проанализирует все таблицы в вашей базе данных и создаст задачу SQL запроса.</p>
+          <p>Выберите уровень сложности:</p>
+          <div class="difficulty-options">
+            <button
+              v-for="level in difficultyLevels"
+              :key="level.value"
+              @click="selectDifficulty(level.value)"
+              :class="{ active: selectedDifficulty === level.value }"
+            >
+              {{ level.label }}
+            </button>
+          </div>
+        </div>
+        <div class="ai-modal-footer">
+          <button
+            @click="generateTask"
+            :disabled="!selectedDifficulty || isGenerating"
+            class="start-btn"
+          >
+            {{ isGenerating ? "Генерация..." : "Старт" }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, reactive, onMounted, nextTick, computed } from "vue";
-import { useAuthStore, useSqlRequest } from "@/stores/store";
+import { useAuthStore, useSqlRequest, useAIrequest } from "@/stores/store";
 import DebuggerView from "../components/DebuggerView.vue";
 
 interface TablePosition {
@@ -125,7 +160,7 @@ interface TableData {
 }
 interface LogMessage {
   message: string;
-  type: "info" | "error" | "success" | "query";
+  type: "info" | "error" | "success" | "query" | "ai-task";
 }
 
 const resultTables = reactive<TableData[]>([]);
@@ -138,12 +173,24 @@ const consoleLogs = reactive<LogMessage[]>([]);
 const showDebuggerTab = ref(false);
 
 const sqlStore = useSqlRequest();
+const taskStore = useAIrequest();
 const tableStore = useAuthStore();
 const commandHistory = ref<string[]>([]);
 const historyIndex = ref(-1);
 
 const activeTab = ref<"tables" | "debugger">("tables");
 const currentDebugMessage = ref<string>("");
+
+// AI Modal state
+const showAIModal = ref(false);
+const selectedDifficulty = ref<string>("");
+const isGenerating = ref(false);
+const isAIButtonDisabled = ref(false);
+const difficultyLevels = ref([
+  { value: "easy", label: "Легкий" },
+  { value: "medium", label: "Средний" },
+  { value: "hard", label: "Сложный" },
+]);
 
 const logToConsole = (message: string, type: LogMessage["type"] = "info"): void => {
   consoleLogs.push({ message, type });
@@ -229,6 +276,59 @@ const sendRequest = async (): Promise<void> => {
   textRequest.value = "";
 };
 
+const openAImodal = async (): Promise<void> => {
+  if (!userString.value) return;
+  showAIModal.value = true;
+};
+
+const closeAIModal = (): void => {
+  showAIModal.value = false;
+  selectedDifficulty.value = "";
+};
+
+const selectDifficulty = (level: string): void => {
+  selectedDifficulty.value = level;
+};
+
+const generateTask = async (): Promise<void> => {
+  if (!userString.value || !selectedDifficulty.value) return;
+
+  isGenerating.value = true;
+  isAIButtonDisabled.value = true;
+
+  try {
+    const response = await tableStore.getAllTables(userString.value);
+    if (!response?.tables?.length) {
+      logToConsole(`Ошибка: Нет таблиц для отправки данных в AI`, "error");
+      return;
+    }
+    const requestData = {
+      tables: response.tables.map((table) => ({
+        is_result: true,
+        name: table.name,
+        headers: table.headers,
+        data: table.data,
+      })),
+      difficulty: selectedDifficulty.value,
+    };
+    const genTaskResponse = await taskStore.genTask(requestData);
+    if (genTaskResponse.task !== "") {
+      logToConsole(genTaskResponse.task, "ai-task");
+    } else {
+      logToConsole(`Ошибка генерации задачи: ${genTaskResponse.error}`, "error");
+    }
+  } catch (error) {
+    logToConsole(`Ошибка запроса на сервер: ${error}`, "error");
+  } finally {
+    isGenerating.value = false;
+    showAIModal.value = false;
+    selectedDifficulty.value = "";
+    setTimeout(() => {
+      isAIButtonDisabled.value = false;
+    }, 30000); // Разблокируем кнопку через 30 секунд
+  }
+};
+
 const startDrag = (e: MouseEvent, index: number): void => {
   activeDragIndex.value = index;
   resultTables[index].isDragging = true;
@@ -305,300 +405,5 @@ onMounted((): void => {
 </script>
 
 <style lang="scss" scoped>
-.sandbox {
-  display: flex;
-  flex-direction: column;
-  height: 80vh;
-  padding: 20px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  // color: #e0e0e0;
-}
-
-.main-workspace {
-  display: flex;
-  gap: 20px;
-  flex: 1;
-  min-height: 0;
-}
-
-.left-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  // background-color: #2d2d2d;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
-}
-
-.tabs-container {
-  display: flex;
-  background-color: rgba(233, 241, 255, 1);
-  padding: 8px 8px 0 8px;
-  border-bottom: 1px solid rgba(103, 107, 115, 1);
-
-  .tab-btn {
-    padding: 8px 16px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    border-radius: 4px 4px 0 0;
-    margin-right: 4px;
-    font-size: 14px;
-    color: #000;
-    font-weight: 500;
-
-    &.active {
-      border-bottom-color: #4a6fa5;
-      font-weight: 600;
-      color: #000;
-      background-color: rgba(233, 241, 255, 1);
-    }
-  }
-}
-
-.content-container {
-  flex: 1;
-  position: relative;
-  min-height: 0;
-}
-
-.tables-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 15px;
-  overflow: hidden;
-  // background-color: #1e1e1e;
-  background-color: rgba(233, 241, 255, 1);
-}
-
-.debugger-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 15px;
-  overflow: auto;
-  // background-color: #1e1e1e;
-  background-color: rgba(233, 241, 255, 1);
-  color: #e0e0e0;
-}
-
-.right-container {
-  width: 450px;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  gap: 10px;
-  border-radius: 8px;
-  padding: 15px;
-  border: 1px solid rgba(103, 107, 115, 1);
-  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.console-panel {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  span {
-    font-size: 19px;
-    font-weight: 600;
-    color: #e0e0e0;
-  }
-
-  .console-btns {
-    display: flex;
-    gap: 10px;
-
-    img {
-      // width: 20px;
-      // height: 20px;
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-
-      &:hover {
-        opacity: 1;
-      }
-    }
-  }
-}
-
-.console-output {
-  flex: 1;
-  background-color: #1e1e1e;
-  background-color: rgba(233, 241, 255, 1);
-  border-radius: 6px;
-  padding: 12px;
-  font-family: "Consolas", monospace;
-  font-size: 13px;
-  overflow-y: auto;
-  min-height: 0;
-  scroll-behavior: smooth;
-
-  .log-message {
-    position: relative;
-    margin-bottom: 8px;
-    line-height: 1.4;
-    white-space: pre-wrap;
-    padding-right: 30px;
-
-    &.info {
-      color: #1f95cc;
-    }
-
-    &.error {
-      color: #ad2727;
-    }
-
-    &.success {
-      color: #23ad38;
-    }
-
-    &.query {
-      color: #b0bec5;
-      background-color: rgba(0, 0, 0, 0.3);
-      padding: 8px;
-      color: #ffffff;
-      background-color: rgba(0, 0, 0, 1);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-family: "Consolas", monospace;
-    }
-
-    .debug-btn {
-      position: absolute;
-      right: 5px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      opacity: 0.5;
-      transition: opacity 0.2s;
-      padding: 0;
-
-      &:hover {
-        opacity: 1;
-      }
-
-      img {
-        width: 16px;
-        height: 16px;
-        filter: invert(1);
-      }
-    }
-  }
-}
-
-.editor-container {
-  textarea {
-    width: 100%;
-    height: 120px;
-    padding: 12px;
-    border: 1px solid #3c3c3c;
-    border-radius: 6px;
-    font-family: "Consolas", monospace;
-    font-size: 14px;
-    resize: none;
-    background-color: rgba(233, 241, 255, 1);
-    color: #000;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-
-    &:focus {
-      outline: none;
-      border-color: #4a6fa5;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(74, 111, 165, 0.3);
-    }
-
-    &::placeholder {
-      color: #5a5a5a;
-    }
-  }
-}
-
-.result-table {
-  position: absolute;
-  background: #252526;
-  border: 1px solid #3c3c3c;
-  border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
-  z-index: 10;
-  color: #e0e0e0;
-
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    background: #4a6fa5;
-    color: white;
-    cursor: move;
-
-    h3 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 500;
-    }
-  }
-
-  .table-controls {
-    .close-btn {
-      background: transparent;
-      border: none;
-      color: white;
-      cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
-      padding: 0 5px;
-
-      &:hover {
-        color: #ffdddd;
-      }
-    }
-  }
-
-  .table-content {
-    overflow: auto;
-    max-height: 300px;
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-
-      th,
-      td {
-        padding: 8px 12px;
-        border: 1px solid #3c3c3c;
-        text-align: left;
-        font-size: 13px;
-      }
-
-      th {
-        background-color: #2a2d2e;
-        position: sticky;
-        top: 0;
-        font-weight: 500;
-        color: #ffffff;
-      }
-
-      tr:nth-child(even) {
-        background-color: #2d2d2d;
-      }
-
-      tr:hover {
-        background-color: #37373d;
-      }
-    }
-  }
-}
+@import url(../assets/sandbox.scss);
 </style>
