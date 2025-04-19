@@ -84,3 +84,60 @@ def extract_table_name(query: str) -> str:
                 return match.group(1)
 
     return None
+
+
+def split_query(query: str) -> list[str]:
+    query = query.strip().rstrip(";").replace("\n", " ")
+    keywords = [
+        "SELECT",
+        "FROM",
+        "JOIN",
+        "WHERE",
+        "GROUP BY",
+        "ORDER BY",
+        "HAVING",
+        "LIMIT",
+    ]
+    for kw in keywords:
+        query = re.sub(rf"\b{kw}\b", f"\n{kw}", query, flags=re.IGNORECASE)
+    lines = [
+        line.strip() for line in query.strip().split("\n") if line.strip()
+    ]
+    return lines
+
+
+@router.post("/query_processing")
+def query_processing(
+    query_struct: schemas.SQLQuery, db: Session = Depends(get_db)
+):
+    tables_struct = {}
+    subqueries = split_query(query_struct.query)
+    print(subqueries)
+    query = "SELECT * "
+    db.execute(text(f"SET search_path TO {query_struct.user}"))
+    for i in range(1, len(subqueries)):
+        query += subqueries[i] + " "
+        result = db.execute(text(query + ";"))
+        explain_data = db.execute(
+            text("EXPLAIN (ANALYZE, VERBOSE, FORMAT JSON) " + query + ";")
+        ).scalar()
+        rows = result.mappings().all()
+        tables_struct[subqueries[i]] = {
+            "is_result": True,
+            "name": "Query Result",
+            "headers": explain_data[0]["Plan"]["Output"],
+            "data": [list(row.values()) for row in rows],
+        }
+    query = query.replace("SELECT *", subqueries[0])
+    result = db.execute(text(query + ";"))
+    explain_data = db.execute(
+        text("EXPLAIN (ANALYZE, VERBOSE, FORMAT JSON) " + query + ";")
+    ).scalar()
+    rows = result.mappings().all()
+    tables_struct[subqueries[i]] = {
+        "is_result": True,
+        "name": "Query Result",
+        "headers": explain_data[0]["Plan"]["Output"],
+        "data": [list(row.values()) for row in rows],
+    }
+    return tables_struct

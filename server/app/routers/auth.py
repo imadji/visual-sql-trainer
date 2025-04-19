@@ -20,7 +20,7 @@ def read_item(pd_user: schemas.UserPD, db: Session = Depends(get_db)):
         return {"status": False}
     elif db_user.password == pd_user.password:
         inspector = inspect(db.bind)
-        tables = inspector.get_table_names()
+        tables = inspector.get_table_names(schema=db_user.login)
         tables_struct = []
         for table in tables:
             tables_struct.append(
