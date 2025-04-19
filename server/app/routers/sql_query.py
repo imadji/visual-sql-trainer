@@ -1,6 +1,9 @@
+import re
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import ProgrammingError
 from .. import models, schemas
 from ..database import get_db
@@ -9,7 +12,7 @@ router = APIRouter(prefix="/sql_query")
 
 
 @router.post("/")
-def read_item(query_struct: schemas.SQLQuery, db: Session = Depends(get_db)):
+def exec_query(query_struct: schemas.SQLQuery, db: Session = Depends(get_db)):
     db.execute(text("SET search_path TO public"))
     db_user = (
         db.query(models.UserDB)
@@ -21,22 +24,54 @@ def read_item(query_struct: schemas.SQLQuery, db: Session = Depends(get_db)):
     db.execute(text(f"SET search_path TO {query_struct.user}"))
     try:
         result = db.execute(text(query_struct.query))
-        table_name = getattr(
-            result.cursor.description[0], "table_name", "query_result"
-        )
         if query_struct.query.strip().lower().startswith("select"):
+            explain_data = db.execute(
+                text(
+                    "EXPLAIN (ANALYZE, VERBOSE, FORMAT JSON) "
+                    + query_struct.query
+                )
+            ).scalar()
             rows = result.mappings().all()
-            return refactor_table_struct(rows, table_name)
+            return {
+                "name": explain_data[0]["Plan"]["Relation Name"],
+                "headers": explain_data[0]["Plan"]["Output"],
+                "data": [list(row.values()) for row in rows],
+            }
         else:
             db.commit()
-            return {"status": "success", "rowcount": result.rowcount}
+            table_name = extract_table_name(query_struct.query)
+            return exec_query(
+                {
+                    "query": f"select * from {table_name};",
+                    "user": query_struct.user,
+                },
+                db,
+            )
     except ProgrammingError as err:
         return str(err.orig)
+    except UniqueViolation as err:
+        return str(err)
 
 
-def refactor_table_struct(table_struct, table_name):
-    return {
-        "name": table_name,
-        "headers": list(table_struct[0].keys()) if table_struct else [],
-        "data": [list(row.values()) for row in table_struct],
+def extract_table_name(query: str) -> str:
+    query = re.sub(
+        r"/\*.*?\*/|--.*?$", "", query, flags=re.DOTALL | re.MULTILINE
+    )
+    query = " ".join(query.split()).lower()
+
+    patterns = {
+        "create": r"create\s+(?:table|view)\s+(?:if\s+not\s+exists\s+)?([\w.]+)",
+        "insert": r"insert\s+into\s+([\w.]+)",
+        "update": r"update\s+([\w.]+)",
+        "delete": r"delete\s+from\s+([\w.]+)",
+        "alter": r"alter\s+table\s+([\w.]+)",
+        "truncate": r"truncate\s+(?:table\s+)?([\w.]+)",
     }
+
+    for cmd, pattern in patterns.items():
+        if query.startswith(cmd):
+            match = re.search(pattern, query)
+            if match:
+                return match.group(1)
+
+    return None
