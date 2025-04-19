@@ -57,7 +57,6 @@ export const useAuthStore = defineStore("auth", {
 export const useSqlRequest = defineStore("sql", {
   actions: {
     async executeSqlReq(command: UserDataSql) {
-      console.log(command);
       const response = await axios.post("http://localhost:8000/sql_query", command, {
         headers: {
           "Content-Type": "application/json",

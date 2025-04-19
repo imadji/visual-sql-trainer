@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 from sqlalchemy.orm import Session
+
+from app.routers.sql_query import exec_query
 from .. import models, schemas
 from ..database import get_db
 
@@ -17,7 +19,21 @@ def read_item(pd_user: schemas.UserPD, db: Session = Depends(get_db)):
     if not db_user:
         return {"status": False}
     elif db_user.password == pd_user.password:
-        return {"status": True}
+        inspector = inspect(db.bind)
+        tables = inspector.get_table_names()
+        tables_struct = []
+        for table in tables:
+            tables_struct.append(
+                exec_query(
+                    schemas.SQLQuery(
+                        query=f"select * from {table};",
+                        user=pd_user.login,
+                    ),
+                    db=db,
+                    is_result=False,
+                )
+            )
+        return {"status": True, "tables": tables_struct}
     else:
         return {"status": False}
 
