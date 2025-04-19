@@ -79,5 +79,17 @@ export const useSqlRequest = defineStore("sql", {
       });
       return response.data;
     },
+    async executeSqlStep(command: UserDataSql) {
+      const response = await axios.post(
+        "http://localhost:8000/sql_query/query_processing",
+        command,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    },
   },
 });
