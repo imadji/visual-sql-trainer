@@ -36,7 +36,7 @@
     display: flex;
     flex-direction: row;
     gap: 10px;
-    
+
     button {
       display: flex;
       align-items: center;

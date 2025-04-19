@@ -8,6 +8,7 @@
             <div class="main-label-text">Пробуй, ошибайся, улучшай! </div>
             <button @click="startTraining">Начать тренировку</button>
         </span>
+        <img class="back-text" src="../../assets/title-text.png" alt="">
     </main>
 </template>
 
@@ -17,7 +18,7 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 const startTraining = () => {
-  router.push("/workspace");
+    router.push("/workspace");
 };
 </script>
 
@@ -31,14 +32,21 @@ align-items: center;
 justify-content: center;
 gap: 10px;
 
-    img{
+    .back-text{
+        position: absolute;
+        width: 60%;
         z-index: 0;
+    }
+
+    img{
+        z-index: 1;
+        backdrop-filter: blur(2px);
     }
     span{
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    z-index: 1;
+    z-index: 2;
 
         .main-label-text-title{
             font-size: 63px;
@@ -48,6 +56,7 @@ gap: 10px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transform: translateX(-60px);
+            backdrop-filter: blur(2px);
         }
         .main-label-text-semititle{
             font-size: 37px;
@@ -68,6 +77,7 @@ gap: 10px;
             color: white;
             cursor: pointer;
             font-size: 25px;
+            backdrop-filter: blur(2px);
 
             &::before {
                 content: "";
