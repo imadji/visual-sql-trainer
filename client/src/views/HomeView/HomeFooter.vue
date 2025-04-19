@@ -10,7 +10,7 @@
 
 <style scoped lang="scss">
 footer{
-    margin-top: 100px;
+    margin-top: 50px;
     margin-bottom: 20px;
     text-align: center;
 }
