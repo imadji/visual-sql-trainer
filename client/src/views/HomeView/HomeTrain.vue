@@ -21,7 +21,7 @@
 .train-container {
     width: 100%;
     margin-top: 100px;
-    margin-bottom: 100px;
+    margin-bottom: 150px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -42,7 +42,7 @@
     }
 
     img {
-        width: 384px;
+        width: 500px;
         background-color: #fff;
         border-radius: 10px;
     }
@@ -51,7 +51,7 @@
 /* Small (sm) – устройства от 576px */
 @media (max-width: 576px) {
     .train-container {
-        margin-bottom: 100px !important;
+        margin-bottom: 150px !important;
         gap: 50px;
         flex-direction: column;
 
@@ -70,7 +70,7 @@
 /* Medium (md) – устройства от 768px */
 @media (max-width: 768px) {
     .train-container {
-        margin-bottom: 50px;
+        margin-bottom: 150px;
         gap: 50px;
         flex-direction: column;
 

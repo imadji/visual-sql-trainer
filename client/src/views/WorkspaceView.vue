@@ -56,13 +56,13 @@ const goHome = async () => {
     span {
       display: flex;
       align-items: center;
-    }
 
-    label {
-      color: var(--text-color);
-      font-size: 20px;
-      font-weight: 500;
-      transform: translateX(-10px);
+      label {
+        color: var(--text-color);
+        font-size: 26px;
+        font-weight: 500;
+        transform: translateX(-10px);
+      }
     }
 
     .toggle-switch {

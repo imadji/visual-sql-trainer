@@ -38,7 +38,7 @@
         gap: 50px;
 
         img {
-            width: 600px;
+            width: 800px;
         }
     }
 }
