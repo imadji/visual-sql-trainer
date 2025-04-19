@@ -28,6 +28,10 @@ html, body, #app {
   padding: 0;
 }
 
+body, html {
+  overflow-x: hidden;
+}
+
 html{
   scroll-behavior: smooth;
 }

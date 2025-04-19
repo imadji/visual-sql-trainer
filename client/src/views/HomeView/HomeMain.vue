@@ -13,6 +13,8 @@
 </template>
 
 <script setup>
+import { onMounted } from "vue";
+import { gsap } from "gsap";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -20,12 +22,26 @@ const router = useRouter();
 const startTraining = () => {
     router.push("/workspace");
 };
+
+onMounted(() => {
+    gsap.from(".main-label-text-title", { duration: 1, y: -50, opacity: 0, ease: "power2.out" });
+    gsap.from(".main-label-text-semititle", { duration: 1.2, y: -40, opacity: 0, delay: 0.3, ease: "power2.out" });
+    gsap.from(".main-label-text", {
+        duration: 1,
+        opacity: 0,
+        stagger: 0.2,
+        delay: 0.6,
+        ease: "power2.out"
+    });
+    gsap.from("button", { duration: 1, scale: 0.8, opacity: 0, delay: 1, ease: "back.out(1.7)" });
+});
 </script>
+
 
 <style scoped lang="scss">
 .main-container {
     width: 100%;
-    height: 90vh;
+    height: 100vh;
     display: flex;
     flex-direction: row;
     align-items: center;

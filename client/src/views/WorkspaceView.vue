@@ -23,11 +23,17 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import TasksView from "@/components/TasksView.vue";
 import SandboxView from "@/components/SandboxView.vue";
 import { useRouter } from "vue-router";
 import HomeFooter from "./HomeView/HomeFooter.vue";
+import { gsap } from "gsap";
+
+onMounted(() => {
+    gsap.from("span", { duration: 1, y: -50, opacity: 0, ease: "power2.out" });
+    // gsap.from(".workspace", { duration: 1, scale: 0.8, opacity: 0, delay: 1, ease: "back.out(1.7)" });
+});
 
 const router = useRouter();
 const currentView = ref("sandbox");

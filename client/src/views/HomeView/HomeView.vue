@@ -61,7 +61,7 @@ onUnmounted(() => {
   color: var(--text-color);
   padding-left: 2%;
   padding-right: 2%;
-  padding-top: 20px;
+  // padding-top: 20px;
   position: relative;
 }
 

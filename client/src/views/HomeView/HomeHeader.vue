@@ -11,15 +11,33 @@
   </header>
 </template>
 
-<script setup></script>
+
+<script scoped setup>
+import { onMounted } from "vue";
+import { gsap } from "gsap";
+
+onMounted(() => {
+    gsap.from("span", { duration: 1, y: -50, opacity: 0, ease: "power2.out" });
+    // gsap.from("button", { duration: 1, scale: 0.8, opacity: 0, delay: 1, ease: "back.out(1.7)" });
+});
+</script>
 
 <style scoped lang="scss">
 .header-container {
-  width: 100%;
-  height: 10vh;
+  width: 100vw;
+  padding-top: 20px;
+  // height: 10vh;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  position: fixed;
+  background-color: var(--background-color);
+  // backdrop-filter: blur(10px);
+  z-index: 999;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding: 20px 40px;
 
   span {
     display: flex;
