@@ -67,7 +67,7 @@
 
       <div class="right-container">
         <div class="console-panel">
-          <span>Инпут:</span>
+          <span>Консоль :</span>
           <div class="console-btns">
             <img @click="sendRequest" src="../assets/info-icon.png" alt="Информация" />
           </div>
@@ -86,7 +86,7 @@
               @click="openDebugger(log.message)"
               title="Открыть в отладчике"
             >
-              <img src="../assets/info-helper.png" alt="">
+              <img src="../assets/info-helper.png" alt="" />
             </button>
           </div>
         </div>
@@ -357,10 +357,6 @@ onMounted((): void => {
       color: #000;
       background-color: rgba(233, 241, 255, 1);
     }
-
-    &:hover {
-      // background-color: #2a2d2e;
-    }
   }
 }
 
@@ -403,7 +399,7 @@ onMounted((): void => {
   gap: 10px;
   border-radius: 8px;
   padding: 15px;
-  border: 1px solid rgba(103,107,115,1);
+  border: 1px solid rgba(103, 107, 115, 1);
   // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
