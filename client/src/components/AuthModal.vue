@@ -35,6 +35,12 @@
 </template>
 
 <script setup lang="ts">
+interface TableData {
+  name: string;
+  headers: string[];
+  data: any[][];
+}
+
 import { ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "vue-router";
@@ -66,16 +72,27 @@ const handleSubmit = async () => {
       login: login.value,
       password: password.value,
     };
-
     let response;
-
     if (props.mode === "login") {
       response = await authStore.login(credentials);
     } else {
       response = await authStore.register(credentials);
     }
 
+    const tables = response?.tables || [];
     if (response?.status) {
+      const tablesData = tables.map((table: TableData) => ({
+        name: table.name,
+        headers: table.headers,
+        data: table.data,
+        position: {
+          x: Math.floor(Math.random() * 100),
+          y: Math.floor(Math.random() * 100),
+        },
+        width: 500,
+        isDragging: false,
+      }));
+      authStore.setTables(tablesData);
       close();
       router.push("/workspace");
     } else {
@@ -136,22 +153,25 @@ const handleSubmit = async () => {
       cursor: pointer;
     }
 
-    form{
+    form {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 20px;
 
-      .form-group{
+      .form-group {
         display: flex;
         flex-direction: column;
         gap: 20px;
 
-
-        ::placeholder{ color: white }
-        ::-webkit-input-placeholder { color: white }
-        input{
+        ::placeholder {
+          color: white;
+        }
+        ::-webkit-input-placeholder {
+          color: white;
+        }
+        input {
           background-color: grey;
           padding: 5px 20px;
           border-radius: 10px;
@@ -182,8 +202,8 @@ const handleSubmit = async () => {
           background: linear-gradient(
             120deg,
             rgba(255, 255, 255, 0) 0%,
-          rgba(255, 255, 255, 0.4) 50%,
-          rgba(255, 255, 255, 0) 100%
+            rgba(255, 255, 255, 0.4) 50%,
+            rgba(255, 255, 255, 0) 100%
           );
           transform: skewX(-20deg);
           animation: shine 3s ease-in-out infinite;
@@ -194,5 +214,4 @@ const handleSubmit = async () => {
     }
   }
 }
-
 </style>

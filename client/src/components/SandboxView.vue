@@ -27,9 +27,7 @@
               </thead>
               <tbody>
                 <tr v-for="(row, rowIndex) in table.data" :key="rowIndex">
-                  <td v-for="(cell, cellIndex) in row" :key="cellIndex">
-                    <div class="cell-content">{{ cell }}</div>
-                  </td>
+                  <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
                 </tr>
               </tbody>
             </table>
@@ -37,113 +35,83 @@
         </div>
       </div>
       <div class="right-container">
-        <h3>Вывод данных SQL запросов</h3>
-        <div class="right-content">
-          <div v-if="testDataTable?.name" class="result-table">
-            <div class="table-header">
-              <h3>{{ testDataTable.name }}</h3>
-            </div>
-            <div class="table-content">
-              <table v-if="testDataTable.headers?.length">
-                <thead>
-                  <tr>
-                    <th v-for="(header, i) in testDataTable.headers" :key="i">
-                      {{ header }}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(row, rowIndex) in testDataTable.data || []" :key="rowIndex">
-                    <td v-for="(cell, cellIndex) in row" :key="cellIndex">
-                      {{ cell }}
-                    </td>
-                  </tr>
-                  <tr v-if="!testDataTable.data?.length">
-                    <td :colspan="testDataTable.headers?.length || 1" class="empty-message">
-                      Нет данных для отображения
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <div v-else class="no-headers">Нет заголовков для отображения</div>
-            </div>
+        <div class="console-output">
+          <div
+            v-for="(log, index) in consoleLogs"
+            :key="index"
+            class="log-message"
+            :class="log.type"
+          >
+            {{ log.message }}
           </div>
-          <div v-else class="empty-state">Результаты запроса будут отображены здесь</div>
+        </div>
+        <div class="editor-container">
+          <textarea
+            v-model="textRequest"
+            placeholder="Введите SQL-запрос..."
+            @keydown.enter.exact.prevent="sendRequest"
+          ></textarea>
+          <button @click="sendRequest" class="submit-btn">Выполнить</button>
         </div>
       </div>
-    </div>
-
-    <div class="status-section">
-      <h3>Статус:</h3>
-      <ul class="status-list">
-        <li>{{ status }}</li>
-      </ul>
-    </div>
-
-    <div class="editor">
-      <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."></textarea>
-      <button @click="sendRequest" class="submit-btn">Отправить запрос</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useSqlRequest } from "@/stores/authStore";
-import { ref, reactive } from "vue";
+import { useAuthStore, useSqlRequest } from "@/stores/authStore";
+import { ref, reactive, onMounted } from "vue";
 
 const resultTables = reactive([]);
-const testDataTable = ref([]);
 const tablesContainer = ref(null);
 const activeDragIndex = ref(null);
-const status = ref("Готов к работе");
 const textRequest = ref("");
 const dragOffset = reactive({ x: 0, y: 0 });
+const consoleLogs = reactive([]);
 const sqlStore = useSqlRequest();
+const tableStore = useAuthStore();
+
+const logToConsole = (message, type = "info") => {
+  consoleLogs.push({ message, type });
+};
 
 const sendRequest = async () => {
   if (!textRequest.value.trim()) {
-    status.value = "Ошибка: запрос пустой";
+    logToConsole("Ошибка: запрос пустой", "error");
     return;
   }
   const userString = localStorage.getItem("authToken");
   if (!userString) {
-    status.value = "Ошибка: пользователь не авторизован";
+    logToConsole("Ошибка: пользователь не авторизован", "error");
     return;
   }
+
   try {
-    status.value = "Выполнение запроса...";
+    logToConsole("Выполнение запроса:", "info");
+    logToConsole(textRequest.value, "query");
     const credentials = {
       query: textRequest.value,
       user: userString,
     };
     const response = await sqlStore.executeSqlReq(credentials);
     if (response) {
-      if (!response.is_result) {
-        const newTable = {
-          name: response.name || "Результат запроса",
-          headers: response.headers || [],
-          data: response.data || [],
-          position: {
-            x: Math.floor(Math.random() * 100),
-            y: Math.floor(Math.random() * 100),
-          },
-          width: 450,
-          isDragging: false,
-        };
-        resultTables.push(newTable);
-      } else {
-        testDataTable.value = {
-          name: response.name || "Результат запроса",
-          headers: response.headers || [],
-          data: response.data || [],
-        };
-      }
-      status.value = "Запрос выполнен успешно";
+      const newTable = {
+        name: response.name || "Результат запроса",
+        headers: response.headers || [],
+        data: response.data || [],
+        position: {
+          x: Math.floor(Math.random() * 100),
+          y: Math.floor(Math.random() * 100),
+        },
+        width: 450,
+        isDragging: false,
+      };
+      resultTables.push(newTable);
+      logToConsole("Запрос выполнен успешно", "success");
     }
   } catch (error) {
     console.error("Ошибка запроса:", error);
-    status.value = "Ошибка при выполнении запроса";
-    testDataTable.value = null;
+    logToConsole(`Ошибка: ${error.message}`, "error");
   }
 };
 
@@ -188,103 +156,156 @@ const stopDrag = () => {
 
 const removeTable = (index) => {
   resultTables.splice(index, 1);
+  logToConsole(`Таблица удалена`, "info");
 };
+
+onMounted(() => {
+  if (tableStore.tables?.length) {
+    tableStore.tables.forEach((table) => {
+      resultTables.push({
+        name: table.name,
+        headers: [...table.headers],
+        data: table.data.map((row) => [...row]),
+        position: { ...table.position },
+        width: table.width,
+        isDragging: false,
+      });
+    });
+  }
+});
 </script>
 
 <style lang="scss" scoped>
 .sandbox {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: calc(100vh - 40px);
   padding: 20px;
-  font-family: Arial, sans-serif;
-  max-width: 1800px;
-  margin: 0 auto;
-  position: relative;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fa;
 }
 
 .main-workspace {
   display: flex;
   gap: 20px;
   flex: 1;
-  margin-bottom: 20px;
+  min-height: 0;
+  margin-bottom: 10px;
 }
 
 .tables-container {
   flex: 1;
   position: relative;
-  min-height: 400px;
+  min-height: 100%;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   padding: 15px;
-  color: #000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
 .right-container {
-  background: white;
-  border: 1px solid #ddd;
   width: 450px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.console-output {
+  flex: 1;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
   border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  .result-table {
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    overflow: hidden;
-    .table-header {
-      padding: 10px;
-      background-color: #4a6fa5;
-      color: white;
-      h3 {
-        margin: 0;
-        font-size: 16px;
-      }
+  padding: 12px;
+  font-family: "Consolas", monospace;
+  font-size: 13px;
+  overflow-y: auto;
+  min-height: 0;
+  .log-message {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+
+    &.info {
+      color: #4fc3f7;
     }
-    .table-content {
-      max-height: 300px;
-      overflow-y: auto;
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        th,
-        td {
-          padding: 8px 12px;
-          border: 1px solid #e0e0e0;
-        }
-        th {
-          background-color: #f2f2f2;
-          position: sticky;
-          top: 0;
-        }
-        .empty-message {
-          text-align: center;
-          color: #888;
-          font-style: italic;
-        }
-      }
+
+    &.error {
+      color: #ff5252;
+    }
+
+    &.success {
+      color: #69f0ae;
+    }
+
+    &.query {
+      color: #b0bec5;
+      background-color: rgba(0, 0, 0, 0.1);
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-left: 12px;
+      font-family: "Consolas", monospace;
+      display: block;
+      margin-top: 4px;
+    }
+  }
+}
+
+.editor-container {
+  color: #1e1e1e;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+
+  textarea {
+    width: 100%;
+    height: 120px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-family: "Consolas", monospace;
+    font-size: 14px;
+    resize: none;
+    background-color: #ffffff;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    &:focus {
+      outline: none;
+      border-color: #4a6fa5;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(74, 111, 165, 0.2);
     }
   }
 
-  h3 {
-    color: #000;
-  }
+  .submit-btn {
+    padding: 10px 20px;
+    background-color: #4a6fa5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
 
-  .empty-state {
-    color: #888;
-    text-align: center;
-    padding: 20px;
+    &:hover {
+      background-color: #3a5a8f;
+    }
+
+    &:active {
+      background-color: #2a4a7f;
+    }
   }
 }
 
 .result-table {
   position: absolute;
-  color: #000; // удалить
   background: white;
   border: 1px solid #ddd;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  z-index: 10;
 
   .table-header {
     display: flex;
@@ -297,7 +318,7 @@ const removeTable = (index) => {
 
     h3 {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 500;
     }
   }
@@ -319,6 +340,7 @@ const removeTable = (index) => {
   }
 
   .table-content {
+    color: #1e1e1e;
     overflow: auto;
     max-height: 300px;
 
@@ -328,9 +350,10 @@ const removeTable = (index) => {
 
       th,
       td {
-        padding: 10px 12px;
+        padding: 8px 12px;
         border: 1px solid #e0e0e0;
         text-align: left;
+        font-size: 13px;
       }
 
       th {
@@ -347,78 +370,6 @@ const removeTable = (index) => {
       tr:hover {
         background-color: #f0f5ff;
       }
-
-      .cell-content {
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-    }
-  }
-}
-
-.status-section {
-  margin: 20px 0;
-
-  h3 {
-    margin-bottom: 10px;
-    font-size: 18px;
-    color: #444;
-  }
-
-  .status-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    color: #000;
-
-    li {
-      padding: 8px 12px;
-      background-color: #f5f5f5;
-      border-radius: 4px;
-      margin-bottom: 5px;
-    }
-  }
-}
-
-.editor {
-  margin: 30px 0;
-
-  textarea {
-    width: 100%;
-    min-height: 120px;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-family: monospace;
-    font-size: 14px;
-    resize: vertical;
-    margin-bottom: 15px;
-
-    &:focus {
-      outline: none;
-      border-color: #4a6fa5;
-      box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
-    }
-  }
-
-  .submit-btn {
-    padding: 12px 25px;
-    background-color: #4a6fa5;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: #3a5a8f;
-    }
-
-    &:active {
-      background-color: #2a4a7f;
     }
   }
 }
