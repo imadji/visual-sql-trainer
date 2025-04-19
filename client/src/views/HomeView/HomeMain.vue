@@ -1,10 +1,10 @@
 <template>
     <main class="main-container">
-        <img src="../../assets/big-logo.png" alt="">
+        <img ref="logo" class="logo" src="../../assets/big-logo.png" alt="">
         <span>
             <div class="main-label-text-title">SQL Coding</div>
             <div class="main-label-text-semititle">SQL Coding - Просто. Чётко. Работает.</div>
-            <div class="main-label-text">Учись писать SQL-запросы быстро и просто.</div>
+            <div class="main-label-text">Учись писать SQL - запросы быстро и просто.</div>
             <div class="main-label-text">Пробуй, ошибайся, улучшай! </div>
             <button @click="startTraining">Начать тренировку</button>
         </span>
@@ -13,11 +13,15 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { gsap } from "gsap";
 import { useRouter } from "vue-router";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const router = useRouter();
+const logo = ref(null);
+const mainContainer = ref(null);
+gsap.registerPlugin(ScrollTrigger);
 
 const startTraining = () => {
     router.push("/workspace");
@@ -34,6 +38,27 @@ onMounted(() => {
         ease: "power2.out"
     });
     gsap.from("button", { duration: 1, scale: 0.8, opacity: 0, delay: 1, ease: "back.out(1.7)" });
+
+    if (logo.value) {
+        gsap.to(logo.value, {
+            x: 200,
+            y: 100,
+            scale: 0.8,
+            rotation: 10,
+            scrollTrigger: {
+                trigger: mainContainer.value,
+                start: "top top",
+                end: "bottom top",
+                scrub: 1,
+                markers: false,
+                ease: "power1.out"
+            }
+        });
+    }
+});
+
+onUnmounted(() => {
+    ScrollTrigger.getAll().forEach(trigger => trigger.kill());
 });
 </script>
 
@@ -54,9 +79,10 @@ onMounted(() => {
         z-index: 0;
     }
 
-    img {
+    .logo {
         z-index: 1;
         backdrop-filter: blur(2px);
+        // will-change: transform;
     }
 
     span {
@@ -66,13 +92,14 @@ onMounted(() => {
         z-index: 2;
 
         .main-label-text-title {
+            margin-bottom: 20px;
             font-size: 63px;
             font-weight: 900;
             padding: 0 20px;
             background-color: rgba(214, 214, 214, 0.3);
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transform: translateX(-60px);
+            transform: translateX(-80px);
             backdrop-filter: blur(2px);
         }
 
