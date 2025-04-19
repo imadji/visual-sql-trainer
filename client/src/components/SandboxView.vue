@@ -33,8 +33,8 @@
         <div class="console-panel">
           <span>Инпут:</span>
           <div class="console-btns">
-              <img @click="sendRequest" src="../assets/start.png" alt="">
-              <img @click="sendRequest" src="../assets/info-icon.png" alt="">
+            <img @click="sendRequest" src="../assets/start.png" alt="">
+            <img @click="sendRequest" src="../assets/info-icon.png" alt="">
           </div>
         </div>
         <div class="console-output" ref="consoleOutput">
@@ -43,8 +43,10 @@
           </div>
         </div>
         <div class="editor-container">
-          <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."
-            @keydown.enter.exact.prevent="sendRequest"></textarea>
+          <!-- <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."
+            @keydown.enter.exact.prevent="sendRequest"></textarea> -->
+          <textarea v-model="textRequest" placeholder="Введите SQL-запрос..." @keydown.enter.exact.prevent="sendRequest"
+            @keydown.up.prevent="navigateHistory('up')" @keydown.down.prevent="navigateHistory('down')" />
         </div>
       </div>
     </div>
@@ -64,6 +66,8 @@ const dragOffset = reactive({ x: 0, y: 0 });
 const consoleLogs = reactive([]);
 const sqlStore = useSqlRequest();
 const tableStore = useAuthStore();
+const commandHistory = ref([]);
+const historyIndex = ref(-1);
 
 const logToConsole = (message, type = "info") => {
   consoleLogs.push({ message, type });
@@ -82,11 +86,21 @@ const sendRequest = async () => {
     logToConsole("Ошибка: запрос пустой", "error");
     return;
   }
+
+  const query = textRequest.value.trim();
+  if (!query) {
+    logToConsole("Ошибка: запрос пустой", "error");
+    return;
+  }
+
   const userString = localStorage.getItem("authToken");
   if (!userString) {
     logToConsole("Ошибка: пользователь не авторизован", "error");
     return;
   }
+
+  commandHistory.value.push(query);
+  historyIndex.value = commandHistory.value.length;
 
   try {
     logToConsole("Выполнение запроса:", "info");
@@ -123,6 +137,7 @@ const sendRequest = async () => {
     console.error("Ошибка запроса:", error);
     logToConsole(`Ошибка: ${error.message}`, "error");
   }
+  textRequest.value = "";
 };
 
 const startDrag = (e, index) => {
@@ -135,6 +150,24 @@ const startDrag = (e, index) => {
   document.addEventListener("mouseup", stopDrag);
   e.preventDefault();
 };
+
+const navigateHistory = (direction) => {
+  if (commandHistory.value.length === 0) return;
+
+  if (direction === "up" && historyIndex.value > 0) {
+    historyIndex.value--;
+    textRequest.value = commandHistory.value[historyIndex.value];
+  } else if (direction === "down") {
+    if (historyIndex.value < commandHistory.value.length - 1) {
+      historyIndex.value++;
+      textRequest.value = commandHistory.value[historyIndex.value];
+    } else {
+      historyIndex.value = commandHistory.value.length;
+      textRequest.value = "";
+    }
+  }
+};
+
 
 const handleDrag = (e) => {
   if (activeDragIndex.value === null) return;
@@ -263,20 +296,20 @@ onMounted(() => {
     white-space: pre-wrap;
 
     &.info {
-      color: #4fc3f7;
+      color: #1f95cc;
     }
 
     &.error {
-      color: #ff5252;
+      color: #ad2727;
     }
 
     &.success {
-      color: #69f0ae;
+      color: #23ad38;
     }
 
     &.query {
-      color: #b0bec5;
-      background-color: rgba(0, 0, 0, 0.1);
+      color: #ffffff;
+      background-color: rgba(0, 0, 0, 1);
       padding: 4px 8px;
       border-radius: 4px;
       margin-left: 12px;
