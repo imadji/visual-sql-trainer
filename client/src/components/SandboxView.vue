@@ -38,7 +38,9 @@
       </div>
       <div class="right-container">
         <h3>Вывод данных SQL запросов</h3>
-        <div class="right-content"></div>
+        <div class="right-content">
+          {{ testDataTable }}
+        </div>
       </div>
     </div>
 
@@ -61,6 +63,7 @@ import { useSqlRequest } from "@/stores/authStore";
 import { ref, reactive, onMounted } from "vue";
 
 const resultTables = reactive([]);
+const testDataTable = ref([]);
 const tablesContainer = ref(null);
 const activeDragIndex = ref(null);
 const status = ref("Готов к работе");
@@ -73,22 +76,22 @@ const sendRequest = async () => {
     status.value = "Ошибка: запрос пустой";
     return;
   }
-  status.value = "Выполнение запроса...";
+  testDataTable.value = null;
+  const userString = localStorage.getItem("authToken");
+  if (!userString) {
+    status.value = "Ошибка: пользователь не авторизован";
+    return;
+  }
   try {
-    const response = await sqlStore.executeSqlReq(textRequest.value);
-
-    if (response.data?.tables) {
+    status.value = "Выполнение запроса...";
+    const credentials = {
+      query: textRequest.value,
+      user: userString,
+    };
+    const response = await sqlStore.executeSqlReq(credentials);
+    if (response) {
       status.value = "Запрос выполнен успешно";
-      response.data.tables.forEach((table) => {
-        resultTables.push({
-          name: table.name || "Результат запроса",
-          headers: table.headers || [],
-          data: table.rows || [],
-          position: { x: 100, y: 100 },
-          width: 500,
-          isDragging: false,
-        });
-      });
+      testDataTable.value = response;
     }
   } catch (error) {
     console.error("Ошибка запроса:", error);
@@ -96,7 +99,6 @@ const sendRequest = async () => {
   }
 };
 
-// Остальные методы остаются без изменений
 const executeQuery = () => {
   const newTables = [
     {
@@ -224,6 +226,7 @@ onMounted(() => {
 
   .right-content {
     padding: 10px 0;
+    color: #000;
 
     p {
       margin: 8px 0;

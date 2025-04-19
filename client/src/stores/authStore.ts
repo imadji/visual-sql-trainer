@@ -5,10 +5,14 @@ interface Credentials {
   login: string;
   password: string;
 }
+interface UserDataSql {
+  query: string;
+  user: string;
+}
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    token: localStorage.getItem("authToken") || null,
+    userLogin: localStorage.getItem("authToken") || null,
   }),
 
   actions: {
@@ -21,8 +25,8 @@ export const useAuthStore = defineStore("auth", {
       const data = response.data;
 
       if (data.status) {
-        this.token = "generated-token"; // в будущем будет токен
-        localStorage.setItem("authToken", this.token);
+        this.userLogin = credentials.login;
+        localStorage.setItem("authToken", this.userLogin);
       }
 
       return data;
@@ -34,12 +38,17 @@ export const useAuthStore = defineStore("auth", {
           "Content-Type": "application/json",
         },
       });
+      const data = response.data;
+      if (data.status) {
+        this.userLogin = credentials.login;
+        localStorage.setItem("authToken", this.userLogin);
+      }
 
       return response.data;
     },
 
     logout() {
-      this.token = null;
+      this.userLogin = null;
       localStorage.removeItem("authToken");
     },
   },
@@ -47,8 +56,9 @@ export const useAuthStore = defineStore("auth", {
 
 export const useSqlRequest = defineStore("sql", {
   actions: {
-    async executeSqlReq(command: string) {
-      const response = await axios.post("http://localhost:8000/sql/execute", command, {
+    async executeSqlReq(command: UserDataSql) {
+      console.log(command);
+      const response = await axios.post("http://localhost:8000/sql_query", command, {
         headers: {
           "Content-Type": "application/json",
         },

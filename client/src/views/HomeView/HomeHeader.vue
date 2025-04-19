@@ -4,8 +4,8 @@
       <img src="../../assets/Logo-mini.png" alt="" />
       <label>SQL Coding</label>
     </span>
-    <button class="sign-up-btn" @click="$emit('login')">Вход</button>
-    <button class="sign-up-btn" @click="$emit('register')">Регистрация</button>
+    <button class="sign-up-btn" @click="$emit('open-auth', 'login')">Вход</button>
+    <button class="sign-up-btn" @click="$emit('open-auth', 'register')">Регистрация</button>
   </header>
 </template>
 
