@@ -139,7 +139,7 @@ const showDebuggerTab = ref(false);
 
 const sqlStore = useSqlRequest();
 const tableStore = useAuthStore();
-const commandHistory = ref([]);
+const commandHistory = ref<string[]>([]);
 const historyIndex = ref(-1);
 
 const activeTab = ref<"tables" | "debugger">("tables");
@@ -179,13 +179,11 @@ const sendRequest = async (): Promise<void> => {
   }
 
   const query = textRequest.value.trim();
-  if (!query) {
+  if (query === "") {
     logToConsole("Ошибка: запрос пустой", "error");
     return;
   }
-
-  const userString = localStorage.getItem("authToken");
-  if (!userStrin.value) {
+  if (!userString.value) {
     logToConsole("Ошибка: пользователь не авторизован", "error");
     return;
   }
@@ -241,24 +239,7 @@ const startDrag = (e: MouseEvent, index: number): void => {
   e.preventDefault();
 };
 
-const navigateHistory = (direction) => {
-  if (commandHistory.value.length === 0) return;
-
-  if (direction === "up" && historyIndex.value > 0) {
-    historyIndex.value--;
-    textRequest.value = commandHistory.value[historyIndex.value];
-  } else if (direction === "down") {
-    if (historyIndex.value < commandHistory.value.length - 1) {
-      historyIndex.value++;
-      textRequest.value = commandHistory.value[historyIndex.value];
-    } else {
-      historyIndex.value = commandHistory.value.length;
-      textRequest.value = "";
-    }
-  }
-};
-
-const navigateHistory = (direction) => {
+const navigateHistory = (direction: string) => {
   if (commandHistory.value.length === 0) return;
 
   if (direction === "up" && historyIndex.value > 0) {
