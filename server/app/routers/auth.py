@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..database import get_db
@@ -34,6 +35,11 @@ def read_item(pd_user: schemas.UserPD, db: Session = Depends(get_db)):
             db_login=pd_user.login,
             password=pd_user.password,
             db_password=pd_user.password,
+        )
+        db.execute(
+            text(
+                f"CREATE SCHEMA IF NOT EXISTS {db_user.login} AUTHORIZATION root"
+            )
         )
         db.add(db_user)
         db.commit()
