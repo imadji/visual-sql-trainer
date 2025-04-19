@@ -6,6 +6,7 @@
             <div class="main-label-text-semititle">SQL Coding - Просто. Чётко. Работает.</div>
             <div class="main-label-text">Учись писать SQL-запросы быстро и просто.</div>
             <div class="main-label-text">Пробуй, ошибайся, улучшай! </div>
+            <button >Начать тренировку</button>
         </span>
     </main>
 </template>
@@ -48,6 +49,48 @@ gap: 10px;
         .main-label-text{
             font-size: 20px;
         }
+        button {
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+            z-index: 0;
+            background-color: var(--shadow-background);
+            padding: 15px 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            font-size: 25px;
+
+            &::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -60%;
+                width: 40%;
+                height: 100%;
+                background: linear-gradient(
+                120deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0) 100%
+                );
+                transform: skewX(-20deg);
+                animation: shine 3s ease-in-out infinite;
+                z-index: 1;
+                pointer-events: none; // чтобы не мешать кликам
+            }
+            }
+
+            @keyframes shine {
+            0% {
+                left: -60%;
+            }
+            100% {
+                left: 120%;
+            }
+            }
+
     }
 }
 

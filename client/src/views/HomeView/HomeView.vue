@@ -12,6 +12,7 @@
           Попробуй — и поймешь, что учиться можно интересно.
         </span>
       </div>
+      <div class="train-photo"></div>
     </div>
     <AuthModal v-if="isModalVisible" :mode="modalMode" @close="hideAuthModal" />
   </div>
@@ -55,8 +56,13 @@ hr {
 }
 
 .train-container{
-  margin-top: 50px;
-  height: 250px;
+  width: 100%;
+  margin-top: 100px;
+  // height: 250px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
 
   .train-text{
     display: flex;
@@ -67,6 +73,12 @@ hr {
     span{
       font-size: 20px;
     }
+  }
+  .train-photo{
+    min-width: 384px;
+    height: 142px;
+    background-color: #fff;
+    border-radius: 10px;
   }
 }
 </style>
