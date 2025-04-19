@@ -1,14 +1,34 @@
 <template>
-  <div class="modal-overlay">
+  <div class="modal-overlay" @click.self="close">
     <div class="modal-content">
-      <h2>{{ props.mode === "login" ? "Вход" : "Регистрация" }}</h2>
-      <form>
-        <button @click="close">закрыть</button>
-        <!-- иконка креста закрытия-->
-        <!-- не забыть вернуть type pass email -->
-        <input v-model="email" placeholder="Email" required />
-        <input v-model="password" placeholder="Пароль" required />
-        <button @click="handleSubmit">Отправить</button>
+      <!-- добавить икноку закрытия -->
+      <button class="close-btn" @click="close">Х</button>
+      <h2>{{ mode === "login" ? "Вход" : "Регистрация" }}</h2>
+
+      <form @submit.prevent="handleSubmit">
+        <div class="form-group">
+          <label for="login">Логин:</label>
+          <input id="login" v-model="login" type="text" placeholder="Введите ваш логин" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Пароль:</label>
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            placeholder="Введите пароль"
+            required
+          />
+        </div>
+
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <button type="submit" class="submit-btn">
+          {{ mode === "login" ? "Войти" : "Зарегистрироваться" }}
+        </button>
       </form>
     </div>
   </div>
@@ -19,24 +39,58 @@ import { ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "vue-router";
 
-const props = defineProps(["mode"]);
+const props = defineProps<{
+  mode: "login" | "register";
+}>();
+
 const emit = defineEmits(["close"]);
 
-const email = ref<string>("");
-const password = ref<string>("");
+const login = ref("");
+const password = ref("");
+const errorMessage = ref("");
+const isLoading = ref(false);
+
 const authStore = useAuthStore();
 const router = useRouter();
 
-const close = async () => {
+const close = () => {
   emit("close");
 };
 
 const handleSubmit = async () => {
-  await authStore.login({
-    email: email.value,
-    password: password.value,
-  });
-  emit("close");
-  router.push("/workspace");
+  errorMessage.value = "";
+  isLoading.value = true;
+
+  try {
+    const credentials = {
+      login: login.value,
+      password: password.value,
+    };
+
+    let response;
+
+    if (props.mode === "login") {
+      response = await authStore.login(credentials);
+    } else {
+      response = await authStore.register(credentials);
+    }
+
+    if (response?.status) {
+      close();
+      router.push("/workspace");
+    } else {
+      errorMessage.value =
+        props.mode === "login"
+          ? "Неверный логин или пароль"
+          : "Пользователь с таким логином уже существует";
+    }
+  } catch (error) {
+    errorMessage.value = "Произошла ошибка. Попробуйте позже";
+    console.error("Auth error:", error);
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
+
+<style scoped lang="scss"></style>
