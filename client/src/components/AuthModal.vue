@@ -7,12 +7,12 @@
 
       <form @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label for="login">Логин:</label>
+          <label for="login">Логин</label>
           <input id="login" v-model="login" type="text" placeholder="Введите ваш логин" required />
         </div>
 
         <div class="form-group">
-          <label for="password">Пароль:</label>
+          <label for="password">Пароль</label>
           <input
             id="password"
             v-model="password"
@@ -93,4 +93,73 @@ const handleSubmit = async () => {
 };
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.modal-overlay {
+  background-color: #000a1dc1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .modal-content {
+    width: 550px;
+    height: 400px;
+    background-color: var(--shadow-background);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    color: var(--text-color);
+    border-radius: 12px;
+    padding: 30px 20px;
+    max-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    font-size: 22px;
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    form{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+
+      .form-group{
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+
+
+        ::placeholder{ color: white }
+        ::-webkit-input-placeholder { color: white }
+        input{
+          background-color: grey;
+          padding: 5px 20px;
+          border-radius: 10px;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+</style>

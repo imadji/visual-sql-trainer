@@ -1,17 +1,19 @@
 <template>
-  <div class="container">
-    <HomeHeader @open-auth="showAuthModal" />
+  <div class="wrapper">
+    <div class="container">
+      <HomeHeader @open-auth="showAuthModal" />
+      <HomeMain />
+      <hr />
+      <HomeTrain />
+      <HomePractice />
+      <HomeFooter />
+    </div>
     <AuthModal v-if="isModalVisible" :mode="modalMode" @close="hideAuthModal" />
-    <HomeMain />
-    <hr />
-    <HomeTrain />
-    <HomePractice />
-    <HomeFooter />
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onUnmounted, ref, watchEffect } from "vue";
 import AuthModal from "@/components/AuthModal.vue";
 import HomeHeader from "./HomeHeader.vue";
 import HomeMain from "./HomeMain.vue";
@@ -30,9 +32,27 @@ const showAuthModal = (mode) => {
 const hideAuthModal = () => {
   isModalVisible.value = false;
 };
+
+watchEffect(() => {
+  if (isModalVisible.value) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+});
+
+onUnmounted(() => {
+  document.body.style.overflow = "";
+});
 </script>
 
 <style lang="scss" scoped>
+.wrapper{
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -42,6 +62,7 @@ const hideAuthModal = () => {
   padding-left: 2%;
   padding-right: 2%;
   padding-top: 20px;
+  position: relative;
 }
 
 hr {
