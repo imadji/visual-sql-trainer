@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app import models
-from app.routers import auth, sql_query
+from app.routers import auth, sql_query, gen_sql_task
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -21,6 +21,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(sql_query.router)
+app.include_router(gen_sql_task.router)
 
 
 @app.get("/")
