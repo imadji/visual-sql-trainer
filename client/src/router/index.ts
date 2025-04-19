@@ -1,11 +1,16 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView/HomeView.vue";
 import WorkspaceView from "../views/WorkspaceView.vue";
+import DebuggerView from "../components/DebuggerView.vue";
 
 const routes = [
   { path: "/", component: HomeView },
-  //meta: { requiresAuth: true }
   { path: "/workspace", component: WorkspaceView },
+  {
+    path: "/debugger",
+    name: "DebuggerView",
+    component: DebuggerView,
+  },
 ];
 
 const router = createRouter({

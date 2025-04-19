@@ -1,71 +1,145 @@
 <template>
   <div class="sandbox">
     <div class="main-workspace">
-      <div class="tables-container" ref="tablesContainer">
-        <div v-for="(table, index) in resultTables" :key="index" class="result-table" :style="{
-          left: table.position.x + 'px',
-          top: table.position.y + 'px',
-          width: table.width + 'px',
-        }">
-          <div class="table-header" @mousedown="startDrag($event, index)">
-            <h3>{{ table.name }}</h3>
-            <div class="table-controls">
-              <button class="close-btn" @click="removeTable(index)" title="Закрыть">×</button>
+      <div class="left-panel">
+        <div class="tabs-container">
+          <button
+            class="tab-btn"
+            :class="{ active: activeTab === 'tables' }"
+            @click="activeTab = 'tables'"
+          >
+            Таблицы
+          </button>
+          <button
+            v-if="showDebuggerTab"
+            class="tab-btn"
+            :class="{ active: activeTab === 'debugger' }"
+            @click="activeTab = 'debugger'"
+          >
+            Отладчик
+          </button>
+        </div>
+
+        <div class="content-container">
+          <div class="tables-container" ref="tablesContainer" v-show="activeTab === 'tables'">
+            <div
+              v-for="(table, index) in resultTables"
+              :key="index"
+              class="result-table"
+              :style="{
+                left: table.position.x + 'px',
+                top: table.position.y + 'px',
+                width: table.width + 'px',
+              }"
+            >
+              <div class="table-header" @mousedown="startDrag($event, index)">
+                <h3>{{ table.name }}</h3>
+                <div class="table-controls">
+                  <button class="close-btn" @click="removeTable(index)" title="Закрыть">×</button>
+                </div>
+              </div>
+              <div class="table-content">
+                <table>
+                  <thead>
+                    <tr>
+                      <th v-for="(header, i) in table.headers" :key="i">{{ header }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, rowIndex) in table.data" :key="rowIndex">
+                      <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-          <div class="table-content">
-            <table>
-              <thead>
-                <tr>
-                  <th v-for="(header, i) in table.headers" :key="i">{{ header }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(row, rowIndex) in table.data" :key="rowIndex">
-                  <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
-                </tr>
-              </tbody>
-            </table>
+
+          <div class="debugger-container" v-show="activeTab === 'debugger'">
+            <DebuggerView
+              :debugMessage="currentDebugMessage"
+              :userString="userString"
+              @close="activeTab = 'tables'"
+            />
           </div>
         </div>
       </div>
+
       <div class="right-container">
         <div class="console-panel">
           <span>Инпут:</span>
           <div class="console-btns">
-              <img @click="sendRequest" src="../assets/start.png" alt="">
-              <img @click="sendRequest" src="../assets/info-icon.png" alt="">
+            <img @click="sendRequest" src="../assets/info-icon.png" alt="Информация" />
           </div>
         </div>
         <div class="console-output" ref="consoleOutput">
-          <div v-for="(log, index) in consoleLogs" :key="index" class="log-message" :class="log.type">
+          <div
+            v-for="(log, index) in consoleLogs"
+            :key="index"
+            class="log-message"
+            :class="log.type"
+          >
             {{ log.message }}
+            <button
+              v-if="log.type === 'query'"
+              class="debug-btn"
+              @click="openDebugger(log.message)"
+              title="Открыть в отладчике"
+            >
+              123
+            </button>
           </div>
         </div>
         <div class="editor-container">
-          <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."
-            @keydown.enter.exact.prevent="sendRequest"></textarea>
+          <textarea
+            v-model="textRequest"
+            placeholder="Введите SQL-запрос..."
+            @keydown.enter.exact.prevent="sendRequest"
+          ></textarea>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
+import { ref, reactive, onMounted, nextTick, computed } from "vue";
 import { useAuthStore, useSqlRequest } from "@/stores/authStore";
-import { ref, reactive, onMounted, nextTick } from "vue";
+import DebuggerView from "../components/DebuggerView.vue";
 
-const resultTables = reactive([]);
-const tablesContainer = ref(null);
-const activeDragIndex = ref(null);
-const consoleOutput = ref(null);
-const textRequest = ref("");
+interface TablePosition {
+  x: number;
+  y: number;
+}
+interface TableData {
+  name: string;
+  headers: string[];
+  data: any[][];
+  position: TablePosition;
+  width: number;
+  isDragging: boolean;
+}
+interface LogMessage {
+  message: string;
+  type: "info" | "error" | "success" | "query";
+}
+
+const resultTables = reactive<TableData[]>([]);
+const tablesContainer = ref<HTMLElement | null>(null);
+const activeDragIndex = ref<number | null>(null);
+const consoleOutput = ref<HTMLElement | null>(null);
+const textRequest = ref<string>("");
 const dragOffset = reactive({ x: 0, y: 0 });
-const consoleLogs = reactive([]);
+const consoleLogs = reactive<LogMessage[]>([]);
+const showDebuggerTab = ref(false);
+
 const sqlStore = useSqlRequest();
 const tableStore = useAuthStore();
 
-const logToConsole = (message, type = "info") => {
+const activeTab = ref<"tables" | "debugger">("tables");
+const currentDebugMessage = ref<string>("");
+
+const logToConsole = (message: string, type: LogMessage["type"] = "info"): void => {
   consoleLogs.push({ message, type });
   nextTick(() => {
     if (consoleOutput.value) {
@@ -77,13 +151,27 @@ const logToConsole = (message, type = "info") => {
   });
 };
 
-const sendRequest = async () => {
+const openDebugger = (message: string): void => {
+  currentDebugMessage.value = message;
+  showDebuggerTab.value = true;
+  activeTab.value = "debugger";
+  navigator.clipboard
+    .writeText(message)
+    .then(() => logToConsole("Переходим в инстурмент Отладчик", "info"))
+    .catch((err: Error) => logToConsole(`Ошибка: ${err.message}`, "error"));
+};
+
+const userString = computed(() => {
+  const user = localStorage.getItem("authToken");
+  return user;
+});
+
+const sendRequest = async (): Promise<void> => {
   if (!textRequest.value.trim()) {
     logToConsole("Ошибка: запрос пустой", "error");
     return;
   }
-  const userString = localStorage.getItem("authToken");
-  if (!userString) {
+  if (!userString.value) {
     logToConsole("Ошибка: пользователь не авторизован", "error");
     return;
   }
@@ -93,11 +181,11 @@ const sendRequest = async () => {
     logToConsole(textRequest.value, "query");
     const credentials = {
       query: textRequest.value,
-      user: userString,
+      user: userString.value,
     };
     const response = await sqlStore.executeSqlReq(credentials);
     if (response.name) {
-      const newTable = {
+      const newTable: TableData = {
         name: response.name || "Результат запроса",
         headers: response.headers || [],
         data: response.data || [],
@@ -108,39 +196,38 @@ const sendRequest = async () => {
         width: 450,
         isDragging: false,
       };
-      let is_new = true;
-      for (let i = 0; i < resultTables.length; i++) {
-        if (resultTables[i].name == response.name) {
-          resultTables[i] = newTable;
-          is_new = false;
-          break;
-        }
+      const existingIndex = resultTables.findIndex((t) => t.name === response.name);
+      if (existingIndex >= 0) {
+        resultTables[existingIndex] = newTable;
+      } else {
+        resultTables.push(newTable);
       }
-      if (is_new) resultTables.push(newTable);
+
       logToConsole("Запрос выполнен успешно", "success");
+      textRequest.value = "";
     }
-  } catch (error) {
-    console.error("Ошибка запроса:", error);
-    logToConsole(`Ошибка: ${error.message}`, "error");
+  } catch (error: unknown) {
+    const err = error as Error;
+    logToConsole(`Ошибка: ${err.message}`, "error");
+    console.error("Ошибка запроса:", err);
   }
 };
 
-const startDrag = (e, index) => {
+const startDrag = (e: MouseEvent, index: number): void => {
   activeDragIndex.value = index;
   resultTables[index].isDragging = true;
   dragOffset.x = e.clientX - resultTables[index].position.x;
   dragOffset.y = e.clientY - resultTables[index].position.y;
-
   document.addEventListener("mousemove", handleDrag);
   document.addEventListener("mouseup", stopDrag);
   e.preventDefault();
 };
 
-const handleDrag = (e) => {
-  if (activeDragIndex.value === null) return;
+const handleDrag = (e: MouseEvent): void => {
+  if (activeDragIndex.value === null || !tablesContainer.value) return;
 
   const containerRect = tablesContainer.value.getBoundingClientRect();
-  const table = document.querySelectorAll(".result-table")[activeDragIndex.value];
+  const table = document.querySelectorAll(".result-table")[activeDragIndex.value] as HTMLElement;
   const tableWidth = table.offsetWidth;
   const tableHeight = table.offsetHeight;
 
@@ -154,24 +241,23 @@ const handleDrag = (e) => {
   resultTables[activeDragIndex.value].position.y = newY;
 };
 
-const stopDrag = () => {
+const stopDrag = (): void => {
   if (activeDragIndex.value !== null) {
     resultTables[activeDragIndex.value].isDragging = false;
     activeDragIndex.value = null;
   }
-
   document.removeEventListener("mousemove", handleDrag);
   document.removeEventListener("mouseup", stopDrag);
 };
 
-const removeTable = (index) => {
+const removeTable = (index: number): void => {
   resultTables.splice(index, 1);
   logToConsole(`Таблица удалена`, "info");
 };
 
-onMounted(() => {
+onMounted((): void => {
   if (tableStore.tables?.length) {
-    tableStore.tables.forEach((table) => {
+    tableStore.tables.forEach((table: TableData) => {
       resultTables.push({
         name: table.name,
         headers: [...table.headers],
@@ -192,7 +278,8 @@ onMounted(() => {
   height: 80vh;
   padding: 20px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  // background-color: #f5f7fa;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
 }
 
 .main-workspace {
@@ -200,19 +287,77 @@ onMounted(() => {
   gap: 20px;
   flex: 1;
   min-height: 0;
-  margin-bottom: 10px;
+}
+
+.left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background-color: #2d2d2d;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.tabs-container {
+  display: flex;
+  background-color: #252526;
+  padding: 8px 8px 0 8px;
+  border-bottom: 1px solid #3c3c3c;
+
+  .tab-btn {
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    border-radius: 4px 4px 0 0;
+    margin-right: 4px;
+    font-size: 14px;
+    color: #d4d4d4;
+
+    &.active {
+      border-bottom-color: #4a6fa5;
+      font-weight: 600;
+      color: #ffffff;
+      background-color: #1e1e1e;
+    }
+
+    &:hover {
+      background-color: #2a2d2e;
+    }
+  }
+}
+
+.content-container {
+  flex: 1;
+  position: relative;
+  min-height: 0;
 }
 
 .tables-container {
-  flex: 1;
-  position: relative;
-  min-height: 100%;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  background-color: rgba(233, 241, 255, 1);
-  padding: 7px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 15px;
   overflow: hidden;
+  background-color: #1e1e1e;
+}
+
+.debugger-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 15px;
+  overflow: auto;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
 }
 
 .right-container {
@@ -221,34 +366,44 @@ onMounted(() => {
   flex-direction: column;
   min-height: 0;
   gap: 10px;
-  padding: 7px;
-  border: 1px solid white;
-  border-radius: 10px;
+  background-color: #2d2d2d;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
 
-  .console-panel {
+.console-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  span {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e0e0e0;
+  }
+
+  .console-btns {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 10px;
 
-    span {
-      font-size: 20px;
-      font-weight: 700;
-    }
+    img {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
 
-    .console-btns {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      &:hover {
+        opacity: 1;
+      }
     }
   }
 }
 
 .console-output {
   flex: 1;
-  // background-color: #1e1e1e;
-  background-color: rgba(233, 241, 255, 1);
-  color: #e0e0e0;
+  background-color: #1e1e1e;
   border-radius: 6px;
   padding: 12px;
   font-family: "Consolas", monospace;
@@ -258,9 +413,11 @@ onMounted(() => {
   scroll-behavior: smooth;
 
   .log-message {
+    position: relative;
     margin-bottom: 8px;
     line-height: 1.4;
     white-space: pre-wrap;
+    padding-right: 30px;
 
     &.info {
       color: #4fc3f7;
@@ -276,52 +433,72 @@ onMounted(() => {
 
     &.query {
       color: #b0bec5;
-      background-color: rgba(0, 0, 0, 0.1);
-      padding: 4px 8px;
+      background-color: rgba(0, 0, 0, 0.3);
+      padding: 8px;
       border-radius: 4px;
-      margin-left: 12px;
       font-family: "Consolas", monospace;
-      display: block;
-      margin-top: 4px;
+    }
+
+    .debug-btn {
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+      padding: 0;
+
+      &:hover {
+        opacity: 1;
+      }
+
+      img {
+        width: 16px;
+        height: 16px;
+        filter: invert(1);
+      }
     }
   }
 }
 
 .editor-container {
-  color: #1e1e1e;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
-
   textarea {
     width: 100%;
     height: 120px;
     padding: 12px;
-    border: 1px solid #d1d5db;
+    border: 1px solid #3c3c3c;
     border-radius: 6px;
     font-family: "Consolas", monospace;
     font-size: 14px;
     resize: none;
-    background-color: rgba(233, 241, 255, 1);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 
     &:focus {
       outline: none;
       border-color: #4a6fa5;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(74, 111, 165, 0.2);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(74, 111, 165, 0.3);
+    }
+
+    &::placeholder {
+      color: #5a5a5a;
     }
   }
 }
 
 .result-table {
   position: absolute;
-  background: white;
-  border: 1px solid #ddd;
+  background: #252526;
+  border: 1px solid #3c3c3c;
   border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   z-index: 10;
+  color: #e0e0e0;
 
   .table-header {
     display: flex;
@@ -356,7 +533,6 @@ onMounted(() => {
   }
 
   .table-content {
-    color: #1e1e1e;
     overflow: auto;
     max-height: 300px;
 
@@ -367,24 +543,25 @@ onMounted(() => {
       th,
       td {
         padding: 8px 12px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #3c3c3c;
         text-align: left;
         font-size: 13px;
       }
 
       th {
-        background-color: #f2f6ff;
+        background-color: #2a2d2e;
         position: sticky;
         top: 0;
         font-weight: 500;
+        color: #ffffff;
       }
 
       tr:nth-child(even) {
-        background-color: #f9f9f9;
+        background-color: #2d2d2d;
       }
 
       tr:hover {
-        background-color: #f0f5ff;
+        background-color: #37373d;
       }
     }
   }
