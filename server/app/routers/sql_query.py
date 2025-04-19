@@ -31,9 +31,12 @@ def exec_query(query_struct: schemas.SQLQuery, db: Session = Depends(get_db)):
                     + query_struct.query
                 )
             ).scalar()
+            print(explain_data)
             rows = result.mappings().all()
             return {
-                "name": explain_data[0]["Plan"]["Relation Name"],
+                "name": explain_data[0]["Plan"].get(
+                    "Relation Name", "Query Result"
+                ),
                 "headers": explain_data[0]["Plan"]["Output"],
                 "data": [list(row.values()) for row in rows],
             }
@@ -41,10 +44,10 @@ def exec_query(query_struct: schemas.SQLQuery, db: Session = Depends(get_db)):
             db.commit()
             table_name = extract_table_name(query_struct.query)
             return exec_query(
-                {
-                    "query": f"select * from {table_name};",
-                    "user": query_struct.user,
-                },
+                schemas.SQLQuery(
+                    query=f"select * from {table_name};",
+                    user=query_struct.user,
+                ),
                 db,
             )
     except ProgrammingError as err:
