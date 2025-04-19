@@ -207,6 +207,7 @@ onMounted(() => {
   border-radius: 8px;
   background-color: #f9f9f9;
   padding: 15px;
+  color: #000;
 }
 
 .right-container {
