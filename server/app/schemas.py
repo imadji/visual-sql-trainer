@@ -9,3 +9,9 @@ class UserPD(BaseModel):
 class SQLQuery(BaseModel):
     query: str
     user: str
+
+
+class TaskSoltion(BaseModel):
+    query: str
+    user: str
+    task_id: int
