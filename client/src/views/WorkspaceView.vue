@@ -23,7 +23,7 @@ import SandboxView from "@/components/SandboxView.vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-const currentView = ref("tasks");
+const currentView = ref("sandbox");
 
 const goHome = async () => {
   router.push("/");
