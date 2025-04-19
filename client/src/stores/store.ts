@@ -23,6 +23,7 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     userLogin: localStorage.getItem("authToken") || null,
     tables: [] as TableData[],
+    allTables: [] as TableData[],
   }),
 
   actions: {
@@ -57,14 +58,36 @@ export const useAuthStore = defineStore("auth", {
       return response.data;
     },
 
+    async getAllTables(login: string) {
+      const response = await axios.get("http://localhost:8000/auth/get_tables", {
+        params: { login },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data;
+    },
+
     setTables(tables: TableData[]) {
       this.tables = tables;
-      console.log(this.tables);
     },
 
     logout() {
       this.userLogin = null;
       localStorage.removeItem("authToken");
+    },
+  },
+});
+
+export const useAIrequest = defineStore("ai", {
+  actions: {
+    async genTask(tables: any) {
+      const response = await axios.post("http://localhost:8000/gen-sql-task", tables, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data;
     },
   },
 });
