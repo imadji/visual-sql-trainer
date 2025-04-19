@@ -37,7 +37,7 @@
         </div>
       </div>
     </div>
-    <div class="status">Статус: Готов к работе</div>
+    <div class="status">Статус: {{ status }}</div>
 
     <div class="editor">
       <textarea placeholder="Введите SQL-запрос..."></textarea>
@@ -53,6 +53,7 @@ import { ref, reactive, onMounted } from "vue";
 const resultTables = reactive([]);
 const tablesContainer = ref(null);
 const activeDragIndex = ref(null);
+const status = ref("Готов к работе");
 const dragOffset = reactive({ x: 0, y: 0 });
 
 const executeQuery = () => {
@@ -140,6 +141,7 @@ onMounted(() => {
 .sandbox {
   position: relative;
   padding: 20px;
+  color: #374151; // убрать в будущем
   height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;

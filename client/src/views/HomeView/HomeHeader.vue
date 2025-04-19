@@ -1,37 +1,36 @@
 <template>
-    <header class="header-container">
-        <span>
-        <img src="../../assets/Logo-mini.png" alt="" />
-        <label>SQL Coding</label>
-        </span>
-        <button class="sign-up-btn" @click="$emit('open-auth', 'login')">Вход</button>
-    </header>
+  <header class="header-container">
+    <span>
+      <img src="../../assets/Logo-mini.png" alt="" />
+      <label>SQL Coding</label>
+    </span>
+    <button class="sign-up-btn" @click="$emit('login')">Вход</button>
+    <button class="sign-up-btn" @click="$emit('register')">Регистрация</button>
+  </header>
 </template>
 
-<script setup>
-  // Никаких реактивностей не нужно — кнопка просто эмитит событие
-</script>
+<script setup></script>
 
 <style scoped lang="scss">
 .header-container {
-width: 100%;
-height: 10vh;
-display: flex;
-align-items: flex-start;
-justify-content: space-between;
+  width: 100%;
+  height: 10vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
 
-span {
+  span {
     display: flex;
     align-items: center;
-}
+  }
 
-label {
+  label {
     font-size: 26px;
     font-weight: 500;
     transform: translateX(-10px);
-}
+  }
 
-button {
+  button {
     display: flex;
     align-items: center;
     height: 40px;
@@ -44,6 +43,6 @@ button {
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: white;
     cursor: pointer;
-}
+  }
 }
 </style>

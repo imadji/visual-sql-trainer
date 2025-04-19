@@ -1,15 +1,16 @@
 <template>
   <div class="container">
-    <HomeHeader @open-auth="showAuthModal"/>
-    <HomeMain/>
-    <hr/>
+    <HomeHeader @open-auth="showAuthModal" />
+    <HomeMain />
+    <hr />
     <div class="train-container">
       <div class="train-text">
         <label>Тренируй свои навыки</label>
-        <span>SQL — это навык, который лучше всего развивается в практике.
-          Внутри тебя ждут интерактивные задания, живые примеры и понятные объяснения.
-          От простых SELECT до сложных JOIN и подзапросов — ты сам решаешь темп и направление.
-          Попробуй — и поймешь, что учиться можно интересно.
+        <span
+          >SQL — это навык, который лучше всего развивается в практике. Внутри тебя ждут
+          интерактивные задания, живые примеры и понятные объяснения. От простых SELECT до сложных
+          JOIN и подзапросов — ты сам решаешь темп и направление. Попробуй — и поймешь, что учиться
+          можно интересно.
         </span>
       </div>
     </div>
@@ -51,20 +52,25 @@ const hideAuthModal = () => {
 hr {
   height: 2px;
   border: 0;
-  background: linear-gradient(90deg,rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
-.train-container{
+.train-container {
   margin-top: 50px;
   height: 250px;
 
-  .train-text{
+  .train-text {
     display: flex;
     flex-direction: column;
-    label{
+    label {
       font-size: 42px;
     }
-    span{
+    span {
       font-size: 20px;
     }
   }
