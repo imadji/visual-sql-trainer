@@ -105,6 +105,12 @@
   .console-btns {
     display: flex;
     gap: 10px;
+    align-items: center;
+
+    .download{
+      width: 35px;
+      height: 35px;
+    }
 
     img {
       cursor: pointer;
