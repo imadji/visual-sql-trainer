@@ -1,6 +1,7 @@
 # SQL Trainer — интерактивный тренажёр для изучения SQL  
 
-![Logo](https://github.com/imadji/visual-sql-trainer/blob/main/client/src/assets/Logo-mini.png)  
+![Logo](https://github.com/imadji/visual-sql-trainer/blob/main/client/src/assets/Logo-mini.png)
+**Демо**: [https://test-task-lake-iota.vercel.app/](https://visual-sql-trainer.extrtkey.ru/)
 
 **SQL Trainer** — это интерактивный тренажёр, который помогает новичкам и разработчикам лучше понимать SQL, визуализируя выполнение запросов и предоставляя удобные инструменты для практики.  
 
