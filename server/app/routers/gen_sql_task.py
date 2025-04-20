@@ -15,6 +15,14 @@ from sqlalchemy.exc import SQLAlchemyError
 
 TOGETHER_API_KEY = "460940d7b7b8c0bee5c1c7274afec77d2f4cea6f14c0f75c22108399a48fdf5a"
 
+HINT_SYSTEM_PROMPT = (
+    "Ты ассистент по обучению SQL. Не давай готовое решение. Вместо этого помоги ученику "
+    "понять, в чём ошибка или что нужно использовать.\n"
+    "Ты должен использовать только переданные таблицы. Укажи, какие SQL-конструкции "
+    "или логика помогут продвинуться дальше, но не пиши SQL-запрос полностью."
+)
+
+
 client = OpenAI(
     api_key=TOGETHER_API_KEY,
     base_url="https://api.together.xyz/v1",
@@ -58,6 +66,15 @@ class CheckSQLResponse(BaseModel):
     expected_result: List[dict[str, Any]]
     user_result: List[dict[str, Any]]
     message: str
+
+
+class HintRequest(BaseModel):
+    user_attempt: str
+    tables: List[SQLTable]
+
+
+class HintResponse(BaseModel):
+    hint: str
 
 
 # region Utils
@@ -186,3 +203,25 @@ def check_user_sql(
         user_result=user,
         message="Результаты совпадают" if success else "Результаты не совпадают",
     )
+
+
+@router.post("/hint", response_model=HintResponse)
+def get_hint(data: HintRequest):
+    """Помощ в выполнении заданий"""
+    table_prompt = build_prompt_from_tables(data.tables)
+    user_prompt = f"Попытка пользователя:\n{data.user_attempt}"
+
+    try:
+        response = client.chat.completions.create(
+            model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+            messages=[
+                {"role": "system", "content": HINT_SYSTEM_PROMPT},
+                {"role": "user", "content": table_prompt + "\n\n" + user_prompt},
+            ],
+            temperature=0.8,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"HINT LLM error: {str(e)}")
+
+    content = response.choices[0].message.content.strip()
+    return HintResponse(hint=content)
