@@ -71,7 +71,12 @@
           <!-- <div class="console-btns" @click="uploadData">ВЫГРУЗКА</div> -->
 
           <div class="console-btns">
-            <img class="download" src="../assets/download.png" title="Выгрузка">
+            <img
+              class="download"
+              @click="uploadData"
+              src="../assets/download.png"
+              title="Выгрузка"
+            />
             <img
               @click="openAImodal"
               src="../assets/info-icon.png"
