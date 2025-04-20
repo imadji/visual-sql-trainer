@@ -68,6 +68,7 @@
       <div class="right-container">
         <div class="console-panel">
           <span>Консоль :</span>
+          <div class="console-btns" @click="uploadData">ВЫГРУЗКА</div>
           <div class="console-btns">
             <img
               @click="openAImodal"
@@ -275,6 +276,15 @@ const sendRequest = async (): Promise<void> => {
     console.error("Ошибка запроса:", err);
   }
   textRequest.value = "";
+};
+
+const uploadData = async (): Promise<void> => {
+  if (!userString.value) return;
+  try {
+    await tableStore.uploadDump(userString.value);
+  } catch (error) {
+    logToConsole(`Ошибка запроса на сервер: ${error}`, "error");
+  }
 };
 
 const openAImodal = async (): Promise<void> => {

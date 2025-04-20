@@ -73,6 +73,20 @@ export const useAuthStore = defineStore("auth", {
       });
       return response.data;
     },
+    async uploadDump(schema_name: string) {
+      const response = await axios.get(`http://localhost:8000/auth/dump/schema/${schema_name}`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${schema_name}_dump.sql`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      return response.data;
+    },
 
     setTables(tables: TableData[]) {
       this.tables = tables;
