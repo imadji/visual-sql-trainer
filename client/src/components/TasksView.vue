@@ -115,6 +115,7 @@ const selectTask = (index: number) => {
   activeTask.value = index;
   selectedTask.value = tasks.value[index];
   queryResult.value = null;
+  sendRequest();
   errorMessage.value = "";
   textRequest.value = tasks.value[index].user_solution;
 };
