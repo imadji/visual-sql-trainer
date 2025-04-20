@@ -24,8 +24,8 @@
       </div>
     </header>
 
-    <TasksView v-if="isVisibleTask" :isVisible="isVisibleTask" />
-    <SandboxView v-else />
+    <TasksView v-show="isVisibleTask" :isVisible="isVisibleTask" />
+    <SandboxView v-show="!isVisibleTask" />
     <HomeFooter />
   </div>
 </template>
@@ -51,6 +51,7 @@ const goHome = async () => {
 
 const isVisibleTask = computed(() => {
   if (currentView.value === "tasks") return true;
+  return false;
 });
 </script>
 
