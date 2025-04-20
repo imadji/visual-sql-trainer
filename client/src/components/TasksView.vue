@@ -351,6 +351,7 @@ watch(
           border: 1px solid #3c3c3c;
           text-align: left;
           font-size: 13px;
+          background-color: #2a2d2e;
         }
 
         th {
