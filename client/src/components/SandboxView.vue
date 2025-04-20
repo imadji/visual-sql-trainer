@@ -68,12 +68,15 @@
       <div class="right-container">
         <div class="console-panel">
           <span>Консоль :</span>
-          <div class="console-btns" @click="uploadData">ВЫГРУЗКА</div>
+          <!-- <div class="console-btns" @click="uploadData">ВЫГРУЗКА</div> -->
+
           <div class="console-btns">
+            <img class="download" src="../assets/download.png" title="Выгрузка">
             <img
               @click="openAImodal"
               src="../assets/info-icon.png"
               :class="{ disabled: isAIButtonDisabled }"
+              title="Задача от AI"
             />
           </div>
         </div>
