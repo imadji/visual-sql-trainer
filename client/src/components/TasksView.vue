@@ -116,7 +116,7 @@ const selectTask = (index: number) => {
   selectedTask.value = tasks.value[index];
   queryResult.value = null;
   errorMessage.value = "";
-  textRequest.value = "";
+  textRequest.value = tasks.value[index].user_solution;
 };
 
 const loadTasks = async () => {
