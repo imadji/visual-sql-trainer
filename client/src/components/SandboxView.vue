@@ -93,6 +93,16 @@
             >
               <img src="../assets/info-helper.png" alt="" />
             </button>
+            <button
+              v-if="log.type === 'ai-task'"
+              class="debug-btn"
+              @click="helpForAI(log.message)"
+              title="Показать SQL подсказку"
+            >
+              <!-- иконка лампы -->
+              <!-- настроить кнопки что лампы что дебаггера снизу справа в углу -->
+              123
+            </button>
           </div>
         </div>
         <div class="editor-container">
@@ -172,17 +182,17 @@ const textRequest = ref<string>("");
 const dragOffset = reactive({ x: 0, y: 0 });
 const consoleLogs = reactive<LogMessage[]>([]);
 const showDebuggerTab = ref(false);
+const commandHistory = ref<string[]>([]);
+const sqlCommandHelp = ref<string[]>([]);
+const historyIndex = ref(-1);
 
 const sqlStore = useSqlRequest();
 const taskStore = useAIrequest();
 const tableStore = useAuthStore();
-const commandHistory = ref<string[]>([]);
-const historyIndex = ref(-1);
 
 const activeTab = ref<"tables" | "debugger">("tables");
 const currentDebugMessage = ref<string>("");
 
-// AI Modal state
 const showAIModal = ref(false);
 const selectedDifficulty = ref<string>("");
 const isGenerating = ref(false);
@@ -213,6 +223,22 @@ const openDebugger = (message: string): void => {
     .writeText(message)
     .then(() => logToConsole("Переходим в инстурмент Отладчик", "info"))
     .catch((err: Error) => logToConsole(`Ошибка: ${err.message}`, "error"));
+};
+
+const helpForAI = (message: string): void => {
+  const logIndex = consoleLogs.findIndex((log) => log.message === message);
+  if (logIndex === -1) return;
+  const taskIndex = sqlCommandHelp.value.indexOf(message);
+  if (taskIndex === -1 || taskIndex + 1 >= sqlCommandHelp.value.length) return;
+  let sqlHint = sqlCommandHelp.value[taskIndex + 1];
+  sqlHint = sqlHint
+    .replace(/^```sql\s*/, "")
+    .replace(/\s*```$/, "")
+    .trim();
+  consoleLogs.splice(logIndex + 1, 0, {
+    message: `${sqlHint}`,
+    type: "query",
+  });
 };
 
 const userString = computed(() => {
@@ -324,6 +350,7 @@ const generateTask = async (): Promise<void> => {
     };
     const genTaskResponse = await taskStore.genTask(requestData);
     if (genTaskResponse.task !== "") {
+      sqlCommandHelp.value.push(genTaskResponse.task, genTaskResponse.sql);
       logToConsole(genTaskResponse.task, "ai-task");
     } else {
       logToConsole(`Ошибка генерации задачи: ${genTaskResponse.error}`, "error");
