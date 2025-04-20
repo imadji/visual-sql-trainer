@@ -260,7 +260,8 @@ const sendRequest = async (): Promise<void> => {
       };
       const existingIndex = resultTables.findIndex((t) => t.name === response.name);
       if (existingIndex >= 0) {
-        resultTables[existingIndex] = newTable;
+        resultTables[existingIndex].headers = response.headers || [];
+        resultTables[existingIndex].data = response.data || [];
       } else {
         resultTables.push(newTable);
       }
