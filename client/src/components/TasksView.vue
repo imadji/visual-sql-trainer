@@ -28,22 +28,22 @@
     <section class="io-panel">
       <div class="tasks-title">Ввод/вывод</div>
       <div class="io-panel-container">
-        <div class="result-table" v-if="queryResult">
+        <div class="result-table">
           <div
             class="table-header"
             :class="{ solved: selectedTask?.solved, unsolved: !selectedTask?.solved }"
           >
-            <h3>{{ queryResult.name || "Результат запроса" }}</h3>
+            <h3>{{ queryResult?.name || "Результат запроса" }}</h3>
           </div>
           <div class="table-content">
             <table>
               <thead>
                 <tr>
-                  <th v-for="(header, i) in queryResult.headers" :key="i">{{ header }}</th>
+                  <th v-for="(header, i) in queryResult?.headers" :key="i">{{ header }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, rowIndex) in queryResult.data" :key="rowIndex">
+                <tr v-for="(row, rowIndex) in queryResult?.data" :key="rowIndex">
                   <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
                 </tr>
               </tbody>
