@@ -51,11 +51,11 @@
           </div>
         </div>
 
-        <div class="console-output" ref="consoleOutput">
+        <!-- <div class="console-output" ref="consoleOutput">
           <div v-if="errorMessage" class="log-message error">
             {{ errorMessage }}
           </div>
-        </div>
+        </div> -->
 
         <div class="editor-container">
           <textarea
@@ -309,13 +309,13 @@ watch(
   }
 
   .result-table {
-    background: #252526;
-    border: 1px solid #3c3c3c;
     border-radius: 6px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     color: #e0e0e0;
     margin-bottom: 10px;
+    flex: 1;
+    background-color: rgba(233, 241, 255, 1);
 
     .table-header {
       &.solved {
