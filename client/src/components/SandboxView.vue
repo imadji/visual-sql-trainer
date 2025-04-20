@@ -325,7 +325,7 @@ const generateTask = async (): Promise<void> => {
     selectedDifficulty.value = "";
     setTimeout(() => {
       isAIButtonDisabled.value = false;
-    }, 30000); // Разблокируем кнопку через 30 секунд
+    }, 30000);
   }
 };
 

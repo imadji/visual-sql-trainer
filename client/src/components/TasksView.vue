@@ -3,12 +3,16 @@
     <section class="tasks-panel">
       <div class="tasks-title">Задачи</div>
       <div class="tasks-items">
-        <div v-for="(task, i) in tasks" :key="i" class="task-item" :class="{ active: i === activeTask }"
-          @click="activeTask = i">
-          <!-- <div v-if="task.completed" class="checkmark"></div> -->
-          <img v-if="task.completed" class="checkmark" src="../assets/checkbox.png" alt="">
+        <div
+          v-for="(task, i) in tasks"
+          :key="task.id"
+          class="task-item"
+          :class="{ active: i === activeTask }"
+          @click="selectTask(i)"
+        >
+          <img v-if="task.solved" class="checkmark" src="../assets/checkbox.png" alt="" />
           <div class="task-title">{{ task.title }}</div>
-          <div class="task-description">{{ task.short }}</div>
+          <div class="task-description">{{ task.description }}</div>
         </div>
       </div>
     </section>
@@ -16,163 +20,182 @@
     <section class="task-detail">
       <div class="tasks-title">Описание задачи</div>
       <div class="task-detail-container">
-        <h2 class="task-detail-title">{{ tasks[activeTask].title }}</h2>
-        <p class="task-detail-full">{{ tasks[activeTask].full }}</p>
+        <h2 class="task-detail-title">{{ selectedTask?.title }}</h2>
+        <p class="task-detail-full">{{ selectedTask?.description }}</p>
       </div>
     </section>
 
     <section class="io-panel">
       <div class="tasks-title">Ввод/вывод</div>
       <div class="io-panel-container">
-        <div class="console-output" ref="consoleOutput">
-          <div v-for="(log, index) in consoleLogs" :key="index" class="log-message" :class="log.type">
-            {{ log.message }}
-            <button v-if="log.type === 'query'" class="debug-btn" @click="openDebugger(log.message)"
-              title="Открыть в отладчике">
-              <img src="../assets/info-helper.png" alt="">
-            </button>
+        <div class="result-table" v-if="queryResult">
+          <div
+            class="table-header"
+            :class="{ solved: selectedTask?.solved, unsolved: !selectedTask?.solved }"
+          >
+            <h3>{{ queryResult.name || "Результат запроса" }}</h3>
+          </div>
+          <div class="table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th v-for="(header, i) in queryResult.headers" :key="i">{{ header }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(row, rowIndex) in queryResult.data" :key="rowIndex">
+                  <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
+
+        <div class="console-output" ref="consoleOutput">
+          <div v-if="errorMessage" class="log-message error">
+            {{ errorMessage }}
+          </div>
+        </div>
+
         <div class="editor-container">
-          <!-- <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."
-          @keydown.enter.exact.prevent="sendRequest"></textarea> -->
-          <textarea v-model="textRequest" placeholder="Введите SQL-запрос..." @keydown.enter.exact.prevent="sendRequest"
-            @keydown.up.prevent="navigateHistory('up')" @keydown.down.prevent="navigateHistory('down')" />
+          <textarea
+            v-model="textRequest"
+            placeholder="Введите SQL-запрос..."
+            @keydown.enter.exact.prevent="sendRequest"
+            @keydown.up.prevent="navigateHistory('up')"
+            @keydown.down.prevent="navigateHistory('down')"
+          />
         </div>
       </div>
     </section>
   </div>
 </template>
 
-<script setup>
-import { ref } from "vue";
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import { useTaskRequest } from "@/stores/store";
 
-const tasks = ref([
-  {
-    title: "Простое извлечение данных",
-    short: "Выведите имена всех клиентов...",
-    full: "Выведите имена всех клиентов из таблицы customers, проживающих в городе 'Москва'.",
-    completed: true,
-    mockResult: [
-      { name: "Иван Петров" },
-      { name: "Мария Смирнова" },
-    ],
-  },
-  {
-    title: "Агрегация и группировка",
-    short: "Найдите количество заказов...",
-    full: "Найдите количество заказов, сделанных каждым клиентом.",
-    completed: false,
-    mockResult: [
-      { customer_name: "Иван Петров", orders_count: 3 },
-      { customer_name: "Анна Иванова", orders_count: 5 },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-  {
-    title: "Объединение таблиц (JOIN)",
-    short: "Выведите список заказов...",
-    full: `Выведите список заказов с именем клиента и названием товара. Используйте таблицы orders, customers, products.`,
-    completed: false,
-    mockResult: [
-      { order_id: 1, customer_name: "Иван Петров", product_name: "Ноутбук" },
-      { order_id: 2, customer_name: "Анна Иванова", product_name: "Телефон" },
-    ],
-  },
-]);
+interface QueryResult {
+  is_result: boolean;
+  name: string;
+  headers: string[];
+  data: any[][];
+}
 
-const activeTask = ref(0);
-const query = ref(tasks.value[activeTask.value].full);
-const result = ref([]);
+interface TaskData {
+  description: string;
+  id: number;
+  solved: boolean;
+  title: string;
+  user_solution: string;
+}
 
-function selectTask(index) {
+const props = defineProps({
+  isVisible: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const taskStore = useTaskRequest();
+const tasks = ref<TaskData[]>([]);
+const activeTask = ref<number>(0);
+const selectedTask = ref<TaskData | null>(null);
+const textRequest = ref<string>("");
+const queryResult = ref<QueryResult | null>(null);
+const errorMessage = ref<string>("");
+const commandHistory = ref<string[]>([]);
+const historyIndex = ref(-1);
+
+const userString = computed(() => {
+  return localStorage.getItem("authToken");
+});
+
+const selectTask = (index: number) => {
   activeTask.value = index;
-  query.value = tasks.value[index].full;
-  result.value = [];
-}
+  selectedTask.value = tasks.value[index];
+  queryResult.value = null;
+  errorMessage.value = "";
+};
 
-function runQuery() {
-  result.value = tasks.value[activeTask.value].mockResult || [];
-}
+const loadTasks = async () => {
+  if (!userString.value) return;
+
+  try {
+    const response = await taskStore.getAllTask(userString.value);
+    if (response && response.tasks) {
+      tasks.value = response.tasks;
+      if (tasks.value.length > 0) {
+        selectedTask.value = tasks.value[0];
+      }
+    }
+  } catch (error) {
+    console.error("Ошибка загрузки задач:", error);
+    errorMessage.value = "Не удалось загрузить список задач";
+  }
+};
+
+const sendRequest = async (): Promise<void> => {
+  if (!userString.value || !selectedTask.value?.id) return;
+
+  const query = textRequest.value.trim();
+  if (query === "") {
+    errorMessage.value = "Ошибка: запрос не может быть пустым";
+    return;
+  }
+
+  commandHistory.value.push(query);
+  historyIndex.value = commandHistory.value.length;
+
+  try {
+    const credentials = {
+      query: textRequest.value,
+      user: userString.value,
+      task_id: selectedTask.value?.id,
+    };
+
+    const response = await taskStore.checkSolveTask(credentials);
+    errorMessage.value = "";
+    queryResult.value = response.result;
+    if (response.status === true) {
+      const taskIndex = tasks.value.findIndex((t) => t.id === selectedTask.value?.id);
+      if (taskIndex !== -1) {
+        tasks.value[taskIndex].solved = true;
+      }
+    }
+  } catch (err) {
+    console.error("Ошибка запроса:", err);
+    errorMessage.value = "Произошла ошибка при выполнении запроса";
+    queryResult.value = null;
+  }
+};
+
+const navigateHistory = (direction: string) => {
+  if (commandHistory.value.length === 0) return;
+
+  if (direction === "up" && historyIndex.value > 0) {
+    historyIndex.value--;
+    textRequest.value = commandHistory.value[historyIndex.value];
+  } else if (direction === "down") {
+    if (historyIndex.value < commandHistory.value.length - 1) {
+      historyIndex.value++;
+      textRequest.value = commandHistory.value[historyIndex.value];
+    } else {
+      historyIndex.value = commandHistory.value.length;
+      textRequest.value = "";
+    }
+  }
+};
+
+watch(
+  () => props.isVisible,
+  (newVal) => {
+    if (newVal && tasks.value.length === 0) {
+      loadTasks();
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style lang="scss" scoped>
@@ -231,7 +254,8 @@ function runQuery() {
         font-size: 18px;
       }
 
-      .task-description {}
+      .task-description {
+      }
     }
 
     .task-item.active {
@@ -283,9 +307,71 @@ function runQuery() {
     gap: 10px;
   }
 
+  .result-table {
+    background: #252526;
+    border: 1px solid #3c3c3c;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    color: #e0e0e0;
+    margin-bottom: 10px;
+
+    .table-header {
+      &.solved {
+        background: #4caf50;
+      }
+      &.unsolved {
+        background: #f44336;
+      }
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      color: white;
+      h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 500;
+      }
+    }
+
+    .table-content {
+      overflow: auto;
+      max-height: 300px;
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th,
+        td {
+          padding: 8px 12px;
+          border: 1px solid #3c3c3c;
+          text-align: left;
+          font-size: 13px;
+        }
+
+        th {
+          background-color: #2a2d2e;
+          position: sticky;
+          top: 0;
+          font-weight: 500;
+          color: #ffffff;
+        }
+
+        tr:nth-child(even) {
+          background-color: #2d2d2d;
+        }
+
+        tr:hover {
+          background-color: #37373d;
+        }
+      }
+    }
+  }
+
   .console-output {
     flex: 1;
-    background-color: #1e1e1e;
     background-color: rgba(233, 241, 255, 1);
     border-radius: 6px;
     padding: 12px;
@@ -302,50 +388,8 @@ function runQuery() {
       white-space: pre-wrap;
       padding-right: 30px;
 
-      &.info {
-        color: #1f95cc;
-      }
-
       &.error {
         color: #ad2727;
-      }
-
-      &.success {
-        color: #23ad38;
-      }
-
-      &.query {
-        color: #b0bec5;
-        background-color: rgba(0, 0, 0, 0.3);
-        padding: 8px;
-        color: #ffffff;
-        background-color: rgba(0, 0, 0, 1);
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-family: "Consolas", monospace;
-      }
-
-      .debug-btn {
-        position: absolute;
-        right: 5px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        cursor: pointer;
-        opacity: 0.5;
-        transition: opacity 0.2s;
-        padding: 0;
-
-        &:hover {
-          opacity: 1;
-        }
-
-        img {
-          width: 16px;
-          height: 16px;
-          filter: invert(1);
-        }
       }
     }
   }
@@ -375,6 +419,5 @@ function runQuery() {
       }
     }
   }
-
 }
 </style>

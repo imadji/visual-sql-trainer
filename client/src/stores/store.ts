@@ -10,6 +10,12 @@ interface UserDataSql {
   user: string;
 }
 
+interface RequestTaskData {
+  query: string;
+  user: string;
+  task_id: number;
+}
+
 interface TableData {
   name: string;
   headers: string[];
@@ -112,6 +118,28 @@ export const useSqlRequest = defineStore("sql", {
           },
         }
       );
+      return response.data;
+    },
+  },
+});
+
+export const useTaskRequest = defineStore("task", {
+  actions: {
+    async getAllTask(user_login: string) {
+      const response = await axios.get("http://localhost:8000/sql_task/get_tasks", {
+        params: { user_login },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      return response.data;
+    },
+    async checkSolveTask(command: RequestTaskData) {
+      const response = await axios.post("http://localhost:8000/sql_task/solve_task", command, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       return response.data;
     },
   },

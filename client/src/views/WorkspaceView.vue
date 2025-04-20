@@ -6,24 +6,32 @@
         <label>SQL Coding</label>
       </span>
       <div class="toggle-switch">
-        <div class="switch-option" :class="{ active: currentView === 'tasks' }" @click="currentView = 'tasks'">
+        <div
+          class="switch-option"
+          :class="{ active: currentView === 'tasks' }"
+          @click="currentView = 'tasks'"
+        >
           Задания
         </div>
-        <div class="switch-option" :class="{ active: currentView === 'sandbox' }" @click="currentView = 'sandbox'">
+        <div
+          class="switch-option"
+          :class="{ active: currentView === 'sandbox' }"
+          @click="currentView = 'sandbox'"
+        >
           Песочница
         </div>
         <div class="switch-indicator" :class="currentView" />
       </div>
     </header>
 
-    <TasksView v-if="currentView === 'tasks'" />
+    <TasksView v-if="isVisibleTask" :isVisible="isVisibleTask" />
     <SandboxView v-else />
-    <HomeFooter/>
+    <HomeFooter />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import TasksView from "@/components/TasksView.vue";
 import SandboxView from "@/components/SandboxView.vue";
 import { useRouter } from "vue-router";
@@ -31,8 +39,7 @@ import HomeFooter from "./HomeView/HomeFooter.vue";
 import { gsap } from "gsap";
 
 onMounted(() => {
-    gsap.from("span", { duration: 1, y: -50, opacity: 0, ease: "power2.out" });
-    // gsap.from(".workspace", { duration: 1, scale: 0.8, opacity: 0, delay: 1, ease: "back.out(1.7)" });
+  gsap.from("span", { duration: 1, y: -50, opacity: 0, ease: "power2.out" });
 });
 
 const router = useRouter();
@@ -41,6 +48,10 @@ const currentView = ref("sandbox");
 const goHome = async () => {
   router.push("/");
 };
+
+const isVisibleTask = computed(() => {
+  if (currentView.value === "tasks") return true;
+});
 </script>
 
 <style lang="scss" scoped>
@@ -57,7 +68,6 @@ const goHome = async () => {
     display: grid;
     grid-template-columns: repeat(2, 40%);
     align-items: center;
-
 
     span {
       display: flex;
@@ -117,7 +127,6 @@ const goHome = async () => {
     .switch-indicator.sandbox {
       transform: translateX(100%);
     }
-
   }
 }
 </style>
