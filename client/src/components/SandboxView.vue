@@ -3,26 +3,45 @@
     <div class="main-workspace">
       <div class="left-panel">
         <div class="tabs-container">
-          <button class="tab-btn" :class="{ active: activeTab === 'tables' }" @click="activeTab = 'tables'">
+          <button
+            class="tab-btn"
+            :class="{ active: activeTab === 'tables' }"
+            @click="activeTab = 'tables'"
+          >
             Таблицы
           </button>
-          <button v-if="showDebuggerTab" class="tab-btn" :class="{ active: activeTab === 'debugger' }"
-            @click="activeTab = 'debugger'">
+          <button
+            v-if="showDebuggerTab"
+            class="tab-btn"
+            :class="{ active: activeTab === 'debugger' }"
+            @click="activeTab = 'debugger'"
+          >
             Отладчик
           </button>
         </div>
 
         <div class="content-container">
-          <div class="tables-container" ref="tablesContainer" v-show="activeTab === 'tables'">
-            <div v-for="(table, index) in resultTables" :key="index" class="result-table" :style="{
-              left: table.position.x + 'px',
-              top: table.position.y + 'px',
-              width: table.width + 'px',
-            }">
+          <div
+            class="tables-container"
+            ref="tablesContainer"
+            v-show="activeTab === 'tables'"
+          >
+            <div
+              v-for="(table, index) in resultTables"
+              :key="index"
+              class="result-table"
+              :style="{
+                left: table.position.x + 'px',
+                top: table.position.y + 'px',
+                width: table.width + 'px',
+              }"
+            >
               <div class="table-header" @mousedown="startDrag($event, index)">
                 <h3>{{ table.name }}</h3>
                 <div class="table-controls">
-                  <button class="close-btn" @click="removeTable(index)" title="Закрыть">×</button>
+                  <button class="close-btn" @click="removeTable(index)" title="Закрыть">
+                    ×
+                  </button>
                 </div>
               </div>
               <div class="table-content">
@@ -34,7 +53,9 @@
                   </thead>
                   <tbody>
                     <tr v-for="(row, rowIndex) in table.data" :key="rowIndex">
-                      <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
+                      <td v-for="(cell, cellIndex) in row" :key="cellIndex">
+                        {{ cell }}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -43,7 +64,11 @@
           </div>
 
           <div class="debugger-container" v-show="activeTab === 'debugger'">
-            <DebuggerView :debugMessage="currentDebugMessage" :userString="userString" @close="activeTab = 'tables'" />
+            <DebuggerView
+              :debugMessage="currentDebugMessage"
+              :userString="userString ?? undefined"
+              @close="activeTab = 'tables'"
+            />
           </div>
         </div>
       </div>
@@ -54,16 +79,34 @@
           <!-- <div class="console-btns" @click="uploadData">ВЫГРУЗКА</div> -->
 
           <div class="console-btns">
-            <img class="download" @click="uploadData" src="../assets/download.png" title="Выгрузка" />
-            <img @click="openAImodal" src="../assets/info-icon.png" :class="{ disabled: isAIButtonDisabled }"
-              title="Задача от AI" />
+            <img
+              class="download"
+              @click="uploadData"
+              src="../assets/download.png"
+              title="Выгрузка"
+            />
+            <img
+              @click="openAImodal"
+              src="../assets/info-icon.png"
+              :class="{ disabled: isAIButtonDisabled }"
+              title="Задача от AI"
+            />
           </div>
         </div>
         <div class="console-output" ref="consoleOutput">
-          <div v-for="(log, index) in consoleLogs" :key="index" class="log-message" :class="log.type">
+          <div
+            v-for="(log, index) in consoleLogs"
+            :key="index"
+            class="log-message"
+            :class="log.type"
+          >
             {{ log.message }}
-            <button v-if="log.type === 'query'" class="debug-btn" @click="openDebugger(log.message)"
-              title="Открыть в отладчике">
+            <button
+              v-if="log.type === 'query'"
+              class="debug-btn"
+              @click="openDebugger(log.message)"
+              title="Открыть в отладчике"
+            >
               <img src="../assets/info-helper.png" alt="" />
             </button>
             <!-- <button
@@ -73,13 +116,24 @@
               title="Показать SQL подсказку"
             >
             </button> -->
-            <img src="../assets/lamp.png" v-if="log.type === 'ai-task'" class="debug-btn"
-              @click="helpForAI(log.message)" title="Показать SQL подсказку" alt="">
+            <img
+              src="../assets/lamp.png"
+              v-if="log.type === 'ai-task'"
+              class="debug-btn"
+              @click="helpForAI(log.message)"
+              title="Показать SQL подсказку"
+              alt=""
+            />
           </div>
         </div>
         <div class="editor-container">
-          <textarea v-model="textRequest" placeholder="Введите SQL-запрос..." @keydown.enter.exact.prevent="sendRequest"
-            @keydown.up.prevent="navigateHistory('up')" @keydown.down.prevent="navigateHistory('down')" />
+          <textarea
+            v-model="textRequest"
+            placeholder="Введите SQL-запрос..."
+            @keydown.enter.exact.prevent="sendRequest"
+            @keydown.up.prevent="navigateHistory('up')"
+            @keydown.down.prevent="navigateHistory('down')"
+          />
         </div>
       </div>
     </div>
@@ -92,17 +146,28 @@
           <button class="close-btn" @click="closeAIModal">×</button>
         </div>
         <div class="ai-modal-content">
-          <p>AI проанализирует все таблицы в вашей базе данных и создаст задачу SQL запроса.</p>
+          <p>
+            AI проанализирует все таблицы в вашей базе данных и создаст задачу SQL
+            запроса.
+          </p>
           <p>Выберите уровень сложности:</p>
           <div class="difficulty-options">
-            <button v-for="level in difficultyLevels" :key="level.value" @click="selectDifficulty(level.value)"
-              :class="{ active: selectedDifficulty === level.value }">
+            <button
+              v-for="level in difficultyLevels"
+              :key="level.value"
+              @click="selectDifficulty(level.value)"
+              :class="{ active: selectedDifficulty === level.value }"
+            >
               {{ level.label }}
             </button>
           </div>
         </div>
         <div class="ai-modal-footer">
-          <button @click="generateTask" :disabled="!selectedDifficulty || isGenerating" class="start-btn">
+          <button
+            @click="generateTask"
+            :disabled="!selectedDifficulty || isGenerating"
+            class="start-btn"
+          >
             {{ isGenerating ? "Генерация..." : "Старт" }}
           </button>
         </div>
@@ -299,7 +364,7 @@ const generateTask = async (): Promise<void> => {
       return;
     }
     const requestData = {
-      tables: response.tables.map((table) => ({
+      tables: response.tables.map((table: any) => ({
         is_result: true,
         name: table.name,
         headers: table.headers,
@@ -357,7 +422,9 @@ const handleDrag = (e: MouseEvent): void => {
   if (activeDragIndex.value === null || !tablesContainer.value) return;
 
   const containerRect = tablesContainer.value.getBoundingClientRect();
-  const table = document.querySelectorAll(".result-table")[activeDragIndex.value] as HTMLElement;
+  const table = document.querySelectorAll(".result-table")[
+    activeDragIndex.value
+  ] as HTMLElement;
   const tableWidth = table.offsetWidth;
   const tableHeight = table.offsetHeight;
 
