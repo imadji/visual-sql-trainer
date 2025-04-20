@@ -1,71 +1,212 @@
 <template>
   <div class="sandbox">
     <div class="main-workspace">
-      <div class="tables-container" ref="tablesContainer">
-        <div v-for="(table, index) in resultTables" :key="index" class="result-table" :style="{
-          left: table.position.x + 'px',
-          top: table.position.y + 'px',
-          width: table.width + 'px',
-        }">
-          <div class="table-header" @mousedown="startDrag($event, index)">
-            <h3>{{ table.name }}</h3>
-            <div class="table-controls">
-              <button class="close-btn" @click="removeTable(index)" title="Закрыть">×</button>
+      <div class="left-panel">
+        <div class="tabs-container">
+          <button
+            class="tab-btn"
+            :class="{ active: activeTab === 'tables' }"
+            @click="activeTab = 'tables'"
+          >
+            Таблицы
+          </button>
+          <button
+            v-if="showDebuggerTab"
+            class="tab-btn"
+            :class="{ active: activeTab === 'debugger' }"
+            @click="activeTab = 'debugger'"
+          >
+            Отладчик
+          </button>
+        </div>
+
+        <div class="content-container">
+          <div class="tables-container" ref="tablesContainer" v-show="activeTab === 'tables'">
+            <div
+              v-for="(table, index) in resultTables"
+              :key="index"
+              class="result-table"
+              :style="{
+                left: table.position.x + 'px',
+                top: table.position.y + 'px',
+                width: table.width + 'px',
+              }"
+            >
+              <div class="table-header" @mousedown="startDrag($event, index)">
+                <h3>{{ table.name }}</h3>
+                <div class="table-controls">
+                  <button class="close-btn" @click="removeTable(index)" title="Закрыть">×</button>
+                </div>
+              </div>
+              <div class="table-content">
+                <table>
+                  <thead>
+                    <tr>
+                      <th v-for="(header, i) in table.headers" :key="i">{{ header }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(row, rowIndex) in table.data" :key="rowIndex">
+                      <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-          <div class="table-content">
-            <table>
-              <thead>
-                <tr>
-                  <th v-for="(header, i) in table.headers" :key="i">{{ header }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(row, rowIndex) in table.data" :key="rowIndex">
-                  <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
-                </tr>
-              </tbody>
-            </table>
+
+          <div class="debugger-container" v-show="activeTab === 'debugger'">
+            <DebuggerView
+              :debugMessage="currentDebugMessage"
+              :userString="userString"
+              @close="activeTab = 'tables'"
+            />
           </div>
         </div>
       </div>
+
       <div class="right-container">
         <div class="console-panel">
-          <span>Инпут:</span>
+          <span>Консоль :</span>
+          <!-- <div class="console-btns" @click="uploadData">ВЫГРУЗКА</div> -->
+
           <div class="console-btns">
-              <img @click="sendRequest" src="../assets/start.png" alt="">
-              <img @click="sendRequest" src="../assets/info-icon.png" alt="">
+            <img class="download" src="../assets/download.png" title="Выгрузка">
+            <img
+              @click="openAImodal"
+              src="../assets/info-icon.png"
+              :class="{ disabled: isAIButtonDisabled }"
+              title="Задача от AI"
+            />
           </div>
         </div>
         <div class="console-output" ref="consoleOutput">
-          <div v-for="(log, index) in consoleLogs" :key="index" class="log-message" :class="log.type">
+          <div
+            v-for="(log, index) in consoleLogs"
+            :key="index"
+            class="log-message"
+            :class="log.type"
+          >
             {{ log.message }}
+            <button
+              v-if="log.type === 'query'"
+              class="debug-btn"
+              @click="openDebugger(log.message)"
+              title="Открыть в отладчике"
+            >
+              <img src="../assets/info-helper.png" alt="" />
+            </button>
+            <button
+              v-if="log.type === 'ai-task'"
+              class="debug-btn"
+              @click="helpForAI(log.message)"
+              title="Показать SQL подсказку"
+            >
+              <!-- иконка лампы -->
+              <!-- настроить кнопки что лампы что дебаггера снизу справа в углу -->
+              123
+            </button>
           </div>
         </div>
         <div class="editor-container">
-          <textarea v-model="textRequest" placeholder="Введите SQL-запрос..."
-            @keydown.enter.exact.prevent="sendRequest"></textarea>
+          <textarea
+            v-model="textRequest"
+            placeholder="Введите SQL-запрос..."
+            @keydown.enter.exact.prevent="sendRequest"
+            @keydown.up.prevent="navigateHistory('up')"
+            @keydown.down.prevent="navigateHistory('down')"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Modal -->
+    <div v-if="showAIModal" class="ai-modal-overlay" @click.self="closeAIModal">
+      <div class="ai-modal">
+        <div class="ai-modal-header">
+          <h3>Генератор задач AI</h3>
+          <button class="close-btn" @click="closeAIModal">×</button>
+        </div>
+        <div class="ai-modal-content">
+          <p>AI проанализирует все таблицы в вашей базе данных и создаст задачу SQL запроса.</p>
+          <p>Выберите уровень сложности:</p>
+          <div class="difficulty-options">
+            <button
+              v-for="level in difficultyLevels"
+              :key="level.value"
+              @click="selectDifficulty(level.value)"
+              :class="{ active: selectedDifficulty === level.value }"
+            >
+              {{ level.label }}
+            </button>
+          </div>
+        </div>
+        <div class="ai-modal-footer">
+          <button
+            @click="generateTask"
+            :disabled="!selectedDifficulty || isGenerating"
+            class="start-btn"
+          >
+            {{ isGenerating ? "Генерация..." : "Старт" }}
+          </button>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { useAuthStore, useSqlRequest } from "@/stores/authStore";
-import { ref, reactive, onMounted, nextTick } from "vue";
+<script lang="ts" setup>
+import { ref, reactive, onMounted, nextTick, computed } from "vue";
+import { useAuthStore, useSqlRequest, useAIrequest } from "@/stores/store";
+import DebuggerView from "../components/DebuggerView.vue";
 
-const resultTables = reactive([]);
-const tablesContainer = ref(null);
-const activeDragIndex = ref(null);
-const consoleOutput = ref(null);
-const textRequest = ref("");
+interface TablePosition {
+  x: number;
+  y: number;
+}
+interface TableData {
+  name: string;
+  headers: string[];
+  data: any[][];
+  position: TablePosition;
+  width: number;
+  isDragging: boolean;
+}
+interface LogMessage {
+  message: string;
+  type: "info" | "error" | "success" | "query" | "ai-task";
+}
+
+const resultTables = reactive<TableData[]>([]);
+const tablesContainer = ref<HTMLElement | null>(null);
+const activeDragIndex = ref<number | null>(null);
+const consoleOutput = ref<HTMLElement | null>(null);
+const textRequest = ref<string>("");
 const dragOffset = reactive({ x: 0, y: 0 });
-const consoleLogs = reactive([]);
+const consoleLogs = reactive<LogMessage[]>([]);
+const showDebuggerTab = ref(false);
+const commandHistory = ref<string[]>([]);
+const sqlCommandHelp = ref<string[]>([]);
+const historyIndex = ref(-1);
+
 const sqlStore = useSqlRequest();
+const taskStore = useAIrequest();
 const tableStore = useAuthStore();
 
-const logToConsole = (message, type = "info") => {
+const activeTab = ref<"tables" | "debugger">("tables");
+const currentDebugMessage = ref<string>("");
+
+const showAIModal = ref(false);
+const selectedDifficulty = ref<string>("");
+const isGenerating = ref(false);
+const isAIButtonDisabled = ref(false);
+const difficultyLevels = ref([
+  { value: "easy", label: "Легкий" },
+  { value: "medium", label: "Средний" },
+  { value: "hard", label: "Сложный" },
+]);
+
+const logToConsole = (message: string, type: LogMessage["type"] = "info"): void => {
   consoleLogs.push({ message, type });
   nextTick(() => {
     if (consoleOutput.value) {
@@ -77,27 +218,66 @@ const logToConsole = (message, type = "info") => {
   });
 };
 
-const sendRequest = async () => {
+const openDebugger = (message: string): void => {
+  currentDebugMessage.value = message;
+  showDebuggerTab.value = true;
+  activeTab.value = "debugger";
+  navigator.clipboard
+    .writeText(message)
+    .then(() => logToConsole("Переходим в инстурмент Отладчик", "info"))
+    .catch((err: Error) => logToConsole(`Ошибка: ${err.message}`, "error"));
+};
+
+const helpForAI = (message: string): void => {
+  const logIndex = consoleLogs.findIndex((log) => log.message === message);
+  if (logIndex === -1) return;
+  const taskIndex = sqlCommandHelp.value.indexOf(message);
+  if (taskIndex === -1 || taskIndex + 1 >= sqlCommandHelp.value.length) return;
+  let sqlHint = sqlCommandHelp.value[taskIndex + 1];
+  sqlHint = sqlHint
+    .replace(/^```sql\s*/, "")
+    .replace(/\s*```$/, "")
+    .trim();
+  consoleLogs.splice(logIndex + 1, 0, {
+    message: `${sqlHint}`,
+    type: "query",
+  });
+};
+
+const userString = computed(() => {
+  const user = localStorage.getItem("authToken");
+  return user;
+});
+
+const sendRequest = async (): Promise<void> => {
   if (!textRequest.value.trim()) {
     logToConsole("Ошибка: запрос пустой", "error");
     return;
   }
-  const userString = localStorage.getItem("authToken");
-  if (!userString) {
+
+  const query = textRequest.value.trim();
+  if (query === "") {
+    logToConsole("Ошибка: запрос пустой", "error");
+    return;
+  }
+  if (!userString.value) {
     logToConsole("Ошибка: пользователь не авторизован", "error");
     return;
   }
+
+  commandHistory.value.push(query);
+  historyIndex.value = commandHistory.value.length;
 
   try {
     logToConsole("Выполнение запроса:", "info");
     logToConsole(textRequest.value, "query");
     const credentials = {
       query: textRequest.value,
-      user: userString,
+      user: userString.value,
     };
     const response = await sqlStore.executeSqlReq(credentials);
     if (response.name) {
-      const newTable = {
+      const newTable: TableData = {
         name: response.name || "Результат запроса",
         headers: response.headers || [],
         data: response.data || [],
@@ -108,39 +288,120 @@ const sendRequest = async () => {
         width: 450,
         isDragging: false,
       };
-      let is_new = true;
-      for (let i = 0; i < resultTables.length; i++) {
-        if (resultTables[i].name == response.name) {
-          resultTables[i] = newTable;
-          is_new = false;
-          break;
-        }
+      const existingIndex = resultTables.findIndex((t) => t.name === response.name);
+      if (existingIndex >= 0) {
+        resultTables[existingIndex].headers = response.headers || [];
+        resultTables[existingIndex].data = response.data || [];
+      } else {
+        resultTables.push(newTable);
       }
-      if (is_new) resultTables.push(newTable);
+
       logToConsole("Запрос выполнен успешно", "success");
+      textRequest.value = "";
     }
+  } catch (error: unknown) {
+    const err = error as Error;
+    logToConsole(`Ошибка: ${err.message}`, "error");
+    console.error("Ошибка запроса:", err);
+  }
+  textRequest.value = "";
+};
+
+const uploadData = async (): Promise<void> => {
+  if (!userString.value) return;
+  try {
+    await tableStore.uploadDump(userString.value);
   } catch (error) {
-    console.error("Ошибка запроса:", error);
-    logToConsole(`Ошибка: ${error.message}`, "error");
+    logToConsole(`Ошибка запроса на сервер: ${error}`, "error");
   }
 };
 
-const startDrag = (e, index) => {
+const openAImodal = async (): Promise<void> => {
+  if (!userString.value) return;
+  showAIModal.value = true;
+};
+
+const closeAIModal = (): void => {
+  showAIModal.value = false;
+  selectedDifficulty.value = "";
+};
+
+const selectDifficulty = (level: string): void => {
+  selectedDifficulty.value = level;
+};
+
+const generateTask = async (): Promise<void> => {
+  if (!userString.value || !selectedDifficulty.value) return;
+
+  isGenerating.value = true;
+  isAIButtonDisabled.value = true;
+
+  try {
+    const response = await tableStore.getAllTables(userString.value);
+    if (!response?.tables?.length) {
+      logToConsole(`Ошибка: Нет таблиц для отправки данных в AI`, "error");
+      return;
+    }
+    const requestData = {
+      tables: response.tables.map((table) => ({
+        is_result: true,
+        name: table.name,
+        headers: table.headers,
+        data: table.data,
+      })),
+      difficulty: selectedDifficulty.value,
+    };
+    const genTaskResponse = await taskStore.genTask(requestData);
+    if (genTaskResponse.task !== "") {
+      sqlCommandHelp.value.push(genTaskResponse.task, genTaskResponse.sql);
+      logToConsole(genTaskResponse.task, "ai-task");
+    } else {
+      logToConsole(`Ошибка генерации задачи: ${genTaskResponse.error}`, "error");
+    }
+  } catch (error) {
+    logToConsole(`Ошибка запроса на сервер: ${error}`, "error");
+  } finally {
+    isGenerating.value = false;
+    showAIModal.value = false;
+    selectedDifficulty.value = "";
+    setTimeout(() => {
+      isAIButtonDisabled.value = false;
+    }, 30000);
+  }
+};
+
+const startDrag = (e: MouseEvent, index: number): void => {
   activeDragIndex.value = index;
   resultTables[index].isDragging = true;
   dragOffset.x = e.clientX - resultTables[index].position.x;
   dragOffset.y = e.clientY - resultTables[index].position.y;
-
   document.addEventListener("mousemove", handleDrag);
   document.addEventListener("mouseup", stopDrag);
   e.preventDefault();
 };
 
-const handleDrag = (e) => {
-  if (activeDragIndex.value === null) return;
+const navigateHistory = (direction: string) => {
+  if (commandHistory.value.length === 0) return;
+
+  if (direction === "up" && historyIndex.value > 0) {
+    historyIndex.value--;
+    textRequest.value = commandHistory.value[historyIndex.value];
+  } else if (direction === "down") {
+    if (historyIndex.value < commandHistory.value.length - 1) {
+      historyIndex.value++;
+      textRequest.value = commandHistory.value[historyIndex.value];
+    } else {
+      historyIndex.value = commandHistory.value.length;
+      textRequest.value = "";
+    }
+  }
+};
+
+const handleDrag = (e: MouseEvent): void => {
+  if (activeDragIndex.value === null || !tablesContainer.value) return;
 
   const containerRect = tablesContainer.value.getBoundingClientRect();
-  const table = document.querySelectorAll(".result-table")[activeDragIndex.value];
+  const table = document.querySelectorAll(".result-table")[activeDragIndex.value] as HTMLElement;
   const tableWidth = table.offsetWidth;
   const tableHeight = table.offsetHeight;
 
@@ -154,24 +415,23 @@ const handleDrag = (e) => {
   resultTables[activeDragIndex.value].position.y = newY;
 };
 
-const stopDrag = () => {
+const stopDrag = (): void => {
   if (activeDragIndex.value !== null) {
     resultTables[activeDragIndex.value].isDragging = false;
     activeDragIndex.value = null;
   }
-
   document.removeEventListener("mousemove", handleDrag);
   document.removeEventListener("mouseup", stopDrag);
 };
 
-const removeTable = (index) => {
+const removeTable = (index: number): void => {
   resultTables.splice(index, 1);
   logToConsole(`Таблица удалена`, "info");
 };
 
-onMounted(() => {
+onMounted((): void => {
   if (tableStore.tables?.length) {
-    tableStore.tables.forEach((table) => {
+    tableStore.tables.forEach((table: TableData) => {
       resultTables.push({
         name: table.name,
         headers: [...table.headers],
@@ -186,207 +446,5 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.sandbox {
-  display: flex;
-  flex-direction: column;
-  height: 80vh;
-  padding: 20px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  // background-color: #f5f7fa;
-}
-
-.main-workspace {
-  display: flex;
-  gap: 20px;
-  flex: 1;
-  min-height: 0;
-  margin-bottom: 10px;
-}
-
-.tables-container {
-  flex: 1;
-  position: relative;
-  min-height: 100%;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  background-color: rgba(233, 241, 255, 1);
-  padding: 7px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-}
-
-.right-container {
-  width: 450px;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  gap: 10px;
-  padding: 7px;
-  border: 1px solid white;
-  border-radius: 10px;
-
-  .console-panel {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    span {
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .console-btns {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-  }
-}
-
-.console-output {
-  flex: 1;
-  // background-color: #1e1e1e;
-  background-color: rgba(233, 241, 255, 1);
-  color: #e0e0e0;
-  border-radius: 6px;
-  padding: 12px;
-  font-family: "Consolas", monospace;
-  font-size: 13px;
-  overflow-y: auto;
-  min-height: 0;
-  scroll-behavior: smooth;
-
-  .log-message {
-    margin-bottom: 8px;
-    line-height: 1.4;
-    white-space: pre-wrap;
-
-    &.info {
-      color: #4fc3f7;
-    }
-
-    &.error {
-      color: #ff5252;
-    }
-
-    &.success {
-      color: #69f0ae;
-    }
-
-    &.query {
-      color: #b0bec5;
-      background-color: rgba(0, 0, 0, 0.1);
-      padding: 4px 8px;
-      border-radius: 4px;
-      margin-left: 12px;
-      font-family: "Consolas", monospace;
-      display: block;
-      margin-top: 4px;
-    }
-  }
-}
-
-.editor-container {
-  color: #1e1e1e;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
-
-  textarea {
-    width: 100%;
-    height: 120px;
-    padding: 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-family: "Consolas", monospace;
-    font-size: 14px;
-    resize: none;
-    background-color: rgba(233, 241, 255, 1);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-
-    &:focus {
-      outline: none;
-      border-color: #4a6fa5;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(74, 111, 165, 0.2);
-    }
-  }
-}
-
-.result-table {
-  position: absolute;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  z-index: 10;
-
-  .table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    background: #4a6fa5;
-    color: white;
-    cursor: move;
-
-    h3 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 500;
-    }
-  }
-
-  .table-controls {
-    .close-btn {
-      background: transparent;
-      border: none;
-      color: white;
-      cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
-      padding: 0 5px;
-
-      &:hover {
-        color: #ffdddd;
-      }
-    }
-  }
-
-  .table-content {
-    color: #1e1e1e;
-    overflow: auto;
-    max-height: 300px;
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-
-      th,
-      td {
-        padding: 8px 12px;
-        border: 1px solid #e0e0e0;
-        text-align: left;
-        font-size: 13px;
-      }
-
-      th {
-        background-color: #f2f6ff;
-        position: sticky;
-        top: 0;
-        font-weight: 500;
-      }
-
-      tr:nth-child(even) {
-        background-color: #f9f9f9;
-      }
-
-      tr:hover {
-        background-color: #f0f5ff;
-      }
-    }
-  }
-}
+@import url(../assets/sandbox.scss);
 </style>

@@ -23,8 +23,8 @@ def exec_query(
         .filter(models.UserDB.login == query_struct.user)
         .first()
     )
-    if not db_user:
-        return {"error": "user not exist"}
+    # if not db_user:
+    #     return {"error": "user not exist"}
     db.execute(text(f"SET search_path TO {query_struct.user}"))
     try:
         result = db.execute(text(query_struct.query))

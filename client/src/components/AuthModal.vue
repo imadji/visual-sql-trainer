@@ -13,7 +13,13 @@
 
         <div class="form-group">
           <label for="password">Пароль</label>
-          <input id="password" v-model="password" type="password" placeholder="Введите пароль" required />
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            placeholder="Введите пароль"
+            required
+          />
         </div>
 
         <div v-if="errorMessage" class="error-message">
@@ -36,7 +42,7 @@ interface TableData {
 }
 
 import { ref } from "vue";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore } from "@/stores/store";
 import { useRouter } from "vue-router";
 
 const props = defineProps<{
@@ -196,10 +202,12 @@ const handleSubmit = async () => {
           left: -60%;
           width: 40%;
           height: 100%;
-          background: linear-gradient(120deg,
-              rgba(255, 255, 255, 0) 0%,
-              rgba(255, 255, 255, 0.4) 50%,
-              rgba(255, 255, 255, 0) 100%);
+          background: linear-gradient(
+            120deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            rgba(255, 255, 255, 0) 100%
+          );
           transform: skewX(-20deg);
           animation: shine 3s ease-in-out infinite;
           z-index: 1;

@@ -6,28 +6,41 @@
         <label>SQL Coding</label>
       </span>
       <div class="toggle-switch">
-        <div class="switch-option" :class="{ active: currentView === 'tasks' }" @click="currentView = 'tasks'">
+        <div
+          class="switch-option"
+          :class="{ active: currentView === 'tasks' }"
+          @click="currentView = 'tasks'"
+        >
           Задания
         </div>
-        <div class="switch-option" :class="{ active: currentView === 'sandbox' }" @click="currentView = 'sandbox'">
+        <div
+          class="switch-option"
+          :class="{ active: currentView === 'sandbox' }"
+          @click="currentView = 'sandbox'"
+        >
           Песочница
         </div>
         <div class="switch-indicator" :class="currentView" />
       </div>
     </header>
 
-    <TasksView v-if="currentView === 'tasks'" />
-    <SandboxView v-else />
-    <HomeFooter/>
+    <TasksView v-show="isVisibleTask" :isVisible="isVisibleTask" />
+    <SandboxView v-show="!isVisibleTask" />
+    <HomeFooter />
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import TasksView from "@/components/TasksView.vue";
 import SandboxView from "@/components/SandboxView.vue";
 import { useRouter } from "vue-router";
 import HomeFooter from "./HomeView/HomeFooter.vue";
+import { gsap } from "gsap";
+
+onMounted(() => {
+  gsap.from("span", { duration: 1, y: -50, opacity: 0, ease: "power2.out" });
+});
 
 const router = useRouter();
 const currentView = ref("sandbox");
@@ -35,6 +48,11 @@ const currentView = ref("sandbox");
 const goHome = async () => {
   router.push("/");
 };
+
+const isVisibleTask = computed(() => {
+  if (currentView.value === "tasks") return true;
+  return false;
+});
 </script>
 
 <style lang="scss" scoped>
@@ -52,17 +70,16 @@ const goHome = async () => {
     grid-template-columns: repeat(2, 40%);
     align-items: center;
 
-
     span {
       display: flex;
       align-items: center;
-    }
 
-    label {
-      color: var(--text-color);
-      font-size: 20px;
-      font-weight: 500;
-      transform: translateX(-10px);
+      label {
+        color: var(--text-color);
+        font-size: 26px;
+        font-weight: 500;
+        transform: translateX(-10px);
+      }
     }
 
     .toggle-switch {
@@ -111,7 +128,6 @@ const goHome = async () => {
     .switch-indicator.sandbox {
       transform: translateX(100%);
     }
-
   }
 }
 </style>

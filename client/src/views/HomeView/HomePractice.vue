@@ -11,8 +11,27 @@
 </template>
 
 <script setup>
-// Никаких реактивностей не нужно — кнопка просто эмитит событие
+import { onMounted } from "vue";
+import { gsap } from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
+onMounted(() => {
+    gsap.from(".practice-container", {
+        xPercent: 20,
+        opacity: 0,
+        duration: 1.2,
+        ease: "power3.out",
+        scrollTrigger: {
+            trigger: ".practice-container",
+            start: "top bottom",
+            toggleActions: "play none none none",
+        },
+    });
+});
 </script>
+
 
 <style scoped lang="scss">
 .practice-container {
@@ -38,7 +57,7 @@
         gap: 50px;
 
         img {
-            width: 600px;
+            width: 800px;
         }
     }
 }
